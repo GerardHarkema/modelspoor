@@ -14,7 +14,7 @@
 
 rcl_publisher_t publisher[2];
 rcl_subscription_t subscriber[2];
-rclc_executor_t executor;
+rclc_executor_t executor[2];
 std_msgs__msg__Bool status[2] = {0};
 std_msgs__msg__Bool control[2] = {0};
 rclc_support_t support;
@@ -30,9 +30,9 @@ rcl_node_t node;
 #define WISSEL_ID_A  WISSEL_ID
 #define WISSEL_ID_B  (WISSEL_ID + 1)
 
-#define SSID          "VRV9517724283"
-#define PASSWORD      "@AYCwXhz976C"
-#define AGENT_IP      "192.168.2.50"
+#define SSID          "BirdsBoven"
+#define PASSWORD      "Highway12!"
+#define AGENT_IP      "192.168.2.27"
 
 void error_loop(){
   while(1){
@@ -55,7 +55,16 @@ void timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 void wissel_control_callback0(const void * msgin)
 {  
   const std_msgs__msg__Bool * control = (const std_msgs__msg__Bool *)msgin;
-  digitalWrite(LED_BUILTIN, (control->data == 0) ? LOW : HIGH);  
+  #if 1
+    digitalWrite(LED_BUILTIN, (control->data == 0) ? LOW : HIGH);
+  #else
+
+  if(control->data){
+    digitalWrite(LED_BUILTIN, HIGH);  
+    delay(500);
+    digitalWrite(LED_BUILTIN, LOW);
+  }
+  #endif
   status[0] = control[0];
 }
 
@@ -120,9 +129,10 @@ void setup() {
     ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Bool),
     topic_name));
   // create executor
-  RCCHECK(rclc_executor_init(&executor, &support.context, 1, &allocator));
-  RCCHECK(rclc_executor_add_subscription(&executor, &subscriber[0], &control[0], &wissel_control_callback0, ON_NEW_DATA));
-  RCCHECK(rclc_executor_add_subscription(&executor, &subscriber[1], &control[1], &wissel_control_callback1, ON_NEW_DATA));
+  RCCHECK(rclc_executor_init(&executor[0], &support.context, 1, &allocator));
+  RCCHECK(rclc_executor_add_subscription(&executor[0], &subscriber[0], &control[0], &wissel_control_callback0, ON_NEW_DATA));
+  RCCHECK(rclc_executor_init(&executor[1], &support.context, 1, &allocator));
+  RCCHECK(rclc_executor_add_subscription(&executor[1], &subscriber[1], &control[1], &wissel_control_callback1, ON_NEW_DATA));
 
   
 
@@ -131,7 +141,8 @@ void setup() {
 void loop() {
     RCSOFTCHECK(rcl_publish(&publisher[0], &status[0], NULL));
     RCSOFTCHECK(rcl_publish(&publisher[1], &status[1], NULL));
-    RCCHECK(rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100)));
+    RCCHECK(rclc_executor_spin_some(&executor[0], RCL_MS_TO_NS(100)));
+    RCCHECK(rclc_executor_spin_some(&executor[1], RCL_MS_TO_NS(100)));
     //Serial.printf(".");
     //status.data != status.data;
 }

@@ -10,10 +10,4 @@ def generate_launch_description():
             name='example_gui',
             output='screen',
         ),
-        Node(
-            package='simulator',
-            executable='simulator_node',
-            name='example_simulator',
-            output='screen',
-        ),
     ])

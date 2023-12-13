@@ -3,57 +3,54 @@ import threading
 from pathlib import Path
 
 import rclpy
-from geometry_msgs.msg import Pose, Twist
+
+from std_msgs.msg import Bool
 from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
 
 from nicegui import Client, app, ui, ui_run
-
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 
 class NiceGuiNode(Node):
 
+    #self.rood = 'rood'
+    #self.groen = 'groen'
+
     def __init__(self) -> None:
         super().__init__('nicegui')
-        self.cmd_vel_publisher = self.create_publisher(Twist, 'cmd_vel', 1)
-        self.subscription = self.create_subscription(Pose, 'pose', self.handle_pose, 1)
+        
+        topic_list = self.get_topic_names_and_types()
+        for topic in topic_list:
+            print(topic[0])
+
+        self.get_logger().debug(topic_list)
+        
+        qos_profile = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=1
+        )
+        self.control_publisher = self.create_publisher(Bool, '/wissel10/control', 1)
+        self.subscription = self.create_subscription(Bool, '/wissel10/status', self.handel_status, qos_profile=qos_profile)
 
         with Client.auto_index_client:
-            with ui.row().classes('items-stretch'):
-                with ui.card().classes('w-44 text-center items-center'):
-                    ui.label('Control').classes('text-2xl')
-                    ui.joystick(color='blue', size=50,
-                                on_move=lambda e: self.send_speed(float(e.y), float(e.x)),
-                                on_end=lambda _: self.send_speed(0.0, 0.0))
-                    ui.label('Publish steering commands by dragging your mouse around in the blue field').classes('mt-6')
-                with ui.card().classes('w-44 text-center items-center'):
-                    ui.label('Data').classes('text-2xl')
-                    ui.label('linear velocity').classes('text-xs mb-[-1.8em]')
-                    slider_props = 'readonly selection-color=transparent'
-                    self.linear = ui.slider(min=-1, max=1, step=0.05, value=0).props(slider_props)
-                    ui.label('angular velocity').classes('text-xs mb-[-1.8em]')
-                    self.angular = ui.slider(min=-1, max=1, step=0.05, value=0).props(slider_props)
-                    ui.label('position').classes('text-xs mb-[-1.4em]')
-                    self.position = ui.label('---')
-                with ui.card().classes('w-96 h-96 items-center'):
-                    ui.label('Visualization').classes('text-2xl')
-                    with ui.scene(350, 300) as scene:
-                        with scene.group() as self.robot_3d:
-                            prism = [[-0.5, -0.5], [0.5, -0.5], [0.75, 0], [0.5, 0.5], [-0.5, 0.5]]
-                            self.robot_object = scene.extrusion(prism, 0.4).material('#4488ff', 0.5)
+            self.rood_button = ui.button('Rood', on_click=lambda: self.set_wissel(True))
+            self.green_button = ui.button('Groen', on_click=lambda: self.set_wissel(False))
+            self.text = ui.label('some label')
+    
+    def set_wissel(self, control) -> None:
+        ui.notify('Set wissel')
+        msg = Bool()
+        msg.data = control
+        self.control_publisher.publish(msg)
 
-    def send_speed(self, x: float, y: float) -> None:
-        msg = Twist()
-        msg.linear.x = x
-        msg.angular.z = -y
-        self.linear.value = x
-        self.angular.value = y
-        self.cmd_vel_publisher.publish(msg)
+    def handel_status(self, msg: Bool) -> None:
+        if msg.data:
+            self.text.set_text("Rood" )
+        else:
+            self.text.set_text("Groen" )
 
-    def handle_pose(self, msg: Pose) -> None:
-        self.position.text = f'x: {msg.position.x:.2f}, y: {msg.position.y:.2f}'
-        self.robot_3d.move(msg.position.x, msg.position.y)
-        self.robot_3d.rotate(0, 0, 2 * math.atan2(msg.orientation.z, msg.orientation.w))
-
+        #print(msg)
 
 def main() -> None:
     # NOTE: This function is defined as the ROS entry point in setup.py, but it's empty to enable NiceGUI auto-reloading
