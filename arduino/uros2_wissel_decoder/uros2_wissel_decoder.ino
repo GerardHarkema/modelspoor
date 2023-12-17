@@ -30,9 +30,9 @@ rcl_node_t node;
 #define WISSEL_ID_A  WISSEL_ID
 #define WISSEL_ID_B  (WISSEL_ID + 1)
 
-#define SSID          "BirdsBoven"
+#define SSID          "BirdsModelspoor"
 #define PASSWORD      "Highway12!"
-#define AGENT_IP      "192.168.2.27"
+#define AGENT_IP      "192.168.2.100"
 
 void error_loop(){
   while(1){
@@ -86,6 +86,10 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
 
+  Serial.begin(115200);
+  Serial.println("Wisselcontroller started");
+
+
   delay(2000);
 
   allocator = rcl_get_default_allocator();
@@ -95,7 +99,7 @@ void setup() {
 
   // create node
   char node_name[40];
-  sprintf(node_name, "wissel_controller_node%i" , WISSEL_ID_A);
+  sprintf(node_name, "wissel_decoder_node%i" , WISSEL_ID_A);
   RCCHECK(rclc_node_init_default(&node, node_name, "", &support));
 
   char topic_name[40];
