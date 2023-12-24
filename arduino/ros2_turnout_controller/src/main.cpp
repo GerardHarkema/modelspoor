@@ -1,4 +1,8 @@
-#include <micro_ros_arduino.h>
+#include <Arduino.h>
+//#include <micro_ros_arduino.h>
+
+
+#include <micro_ros_platformio.h>
 
 #include <stdio.h>
 #include <rcl/rcl.h>
@@ -28,13 +32,21 @@ rcl_node_t node;
 #define RCCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){error_loop();}}
 #define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){}}
 
+
+#define RCCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){error_loop();}}
+#define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){}}
+
 #define WISSEL_ID  10
 #define WISSEL_ID_A  WISSEL_ID
 #define WISSEL_ID_B  (WISSEL_ID + 1)
 
 #define SSID          "BirdsModelspoor"
 #define PASSWORD      "Highway12!"
-#define AGENT_IP      "192.168.2.27"
+//#define AGENT_IP      "192.168.2.27"
+
+
+//#define AGENT_IP  agent_ip(192, 168, 1, 113)
+//#define AGENT_PORT (agent_port = 8888)
 
 void error_loop(){
   while(1){
@@ -83,7 +95,14 @@ void wissel_control_callback1(const void * msgin)
 void setup() {
 
   //Serial.begin(115200);
-  set_microros_wifi_transports(SSID, PASSWORD, AGENT_IP, 8888);
+  //set_microros_wifi_transports(SSID, PASSWORD, AGENT_IP, AGENT_PORT);
+IPAddress agent_ip(192, 168, 1, 113);
+size_t agent_port = 8888;
+
+char ssid[] = "WIFI_SSID";
+char psk[]= "WIFI_PSK";
+
+set_microros_wifi_transports(ssid, psk, agent_ip, agent_port);
 
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, HIGH);
