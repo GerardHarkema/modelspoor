@@ -3,6 +3,7 @@ import threading
 from pathlib import Path
 
 import rclpy
+import os
 
 from std_msgs.msg import Bool
 from rclpy.executors import ExternalShutdownException
@@ -11,15 +12,45 @@ from rclpy.node import Node
 from nicegui import Client, app, ui, ui_run
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 
+from railway_interfaces.msg import LocomotiveControl  
+from railway_interfaces.msg import TurnoutControl  
+
 turnouts = [10, 11, 12, 13, 14, 15, 32]
 
-locs =["stoom_loc.jpg", "NS1212.jpg", "diesel_loc.jpg"]
+stoomtrein  = {
+    "name" : "Stoomtrein",
+    "type": "Stoomtrein",
+    "image": "stoom_loc.jpg",
+    "protocol": "MFX",
+    "address": 10
+}
+
+NS121 = {
+    "name" : "NS1212",
+    "type": "Electrischetrein",
+    "image": "NS1212.jpg",
+    "protocol": "DCC",
+    "address": 12
+}
+
+dieseltrein = {
+    "name" : "Dieseltrein",
+    "type": "Dieseltrein",
+    "image": "diesel_loc.jpg",
+    "protocol": "DCC",
+    "address": 13
+}
+
+locomotives =[stoomtrein, NS121, dieseltrein]
 
 class turnout_control(Node):
 
 
     def __init__(self, turnout_number):
         super().__init__('nicegui')
+
+        self.turnout_msg = TurnoutControl()
+        self.turnout_msg.number = turnout_number
 
         self.turnout_number = turnout_number
         with ui.card():
@@ -62,35 +93,41 @@ class turnout_control(Node):
             self.text.set_text("Groen" )
             self.led.classes('text-red', remove='text-green')    
 
-class train_control(Node):
+class locomotive_control(Node):
 
-
-    def __init__(self, train_name):
+    def __init__(self, locomotive_descr):
         super().__init__('nicegui')
 
-
-        self.train_name = train_name
+        self.locomotive_msg = LocomotiveControl()
+        self.locomotive_msg.name = locomotive_descr['name']
+        self.locomotive_msg.address = locomotive_descr['address']
+        self.locomotive_msg.protocol = locomotive_descr['protocol']
         with ui.card():
-            text = 'Train ' + str(self.train_name)
-            image = "nicegui/gui/train_images/"+ str(self.train_name)
-            ui.label(image)
-            ui.image(image).classes('w-16')
+            text = 'Locomotive: ' + str(locomotive_descr['type'])
+            ui.label(text)
+            image = "/home/gerard/modelspoor_ws/src/nicegui/gui/gui/locomotive_images/"+ locomotive_descr["image"]
+            #image = os.getcwd() + "/"+ locomotive_descr["image"]
+            #ui.label(os.getcwd())
+
+            ui.image(image).classes('w-64')
             with ui.grid(columns=4):
-                self.forward = ui.button('Forward')#, on_click=lambda: self.set_turnout(False)).classes('drop-shadow bg-green')
                 self.reverse = ui.button('Reverse')#, on_click=lambda: self.set_turnout(True)).classes('drop-shadow bg-red')
+                self.forward = ui.button('Forward')#, on_click=lambda: self.set_turnout(False)).classes('drop-shadow bg-green')
                 self.slider = ui.slider(min=0, max=100, value=50)
                 ui.label().bind_text_from(self.slider, 'value')
-
-
-
-'''                
+        
         self.qos_profile = QoSProfile(
             reliability=QoSReliabilityPolicy.BEST_EFFORT,
             history=QoSHistoryPolicy.KEEP_LAST,
             depth=1)
-        topic = "/train" + str(self.turnout_number) + "/control"
-        self.control_publisher = self.create_publisher(Bool, topic, 1)
-        topic = "/train" + str(self.turnout_number) + "/status"
+        
+        topic = "/locomotive/control"
+        self.control_publisher = self.create_publisher(LocomotiveControl, topic, 1)
+
+
+
+'''                
+        topic = "/locomotive" + str(self.turnout_number) + "/status"
         self.subscription = self.create_subscription(Bool, topic, self.status_callback, qos_profile=self.qos_profile)
 
     def set_turnout(self, control) -> None:
@@ -121,26 +158,26 @@ class NiceGuiNode(Node):
         super().__init__('nicegui')
         
         topic_list = self.get_topic_names_and_types()
-        for topic in topic_list:
-            print(topic[0])
+        #for topic in topic_list:
+        #    print(topic[0])
 
         self.get_logger().debug(topic_list)
 
         self.turnoutsui= []
-        self.trainsui = []
+        self.locomotivesui = []
         with Client.auto_index_client:
             with ui.tabs().classes('w-full') as tabs:
-                trains_tab = ui.tab('Trains')
+                locomotives_tab = ui.tab('Locomotives')
                 turnouts_tab = ui.tab('Turnouts')
-            with ui.tab_panels(tabs, value=trains_tab).classes('w-full'):
+            with ui.tab_panels(tabs, value=locomotives_tab).classes('w-full'):
                 with ui.tab_panel(turnouts_tab):
                     for turnout in turnouts:
                         wc = turnout_control(turnout)
                         self.turnoutsui.append(wc)
-                with ui.tab_panel(trains_tab):
-                    for loc in locs:
-                        train = train_control(loc)
-                        self.trainsui.append(train)
+                with ui.tab_panel(locomotives_tab):
+                    for loc in locomotives:
+                        locomotive = locomotive_control(loc)
+                        self.locomotivesui.append(locomotive)
             self.stop_btn = ui.button('STOP', on_click=lambda: self.stop()).classes('drop-shadow bg-red')
     
     def stop(self):

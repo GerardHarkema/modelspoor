@@ -102,7 +102,7 @@ size_t agent_port = 8888;
 char ssid[] = "WIFI_SSID";
 char psk[]= "WIFI_PSK";
 
-set_microros_wifi_transports(ssid, psk, agent_ip, agent_port);
+//set_microros_wifi_transports(ssid, psk, agent_ip, agent_port);
 
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, HIGH);

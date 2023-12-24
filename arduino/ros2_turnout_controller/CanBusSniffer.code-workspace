@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "../CanBusSniffer"
+		},
+		{
+			"name": "ros2_turnout_controller",
+			"path": "."
+		},
+		{
+			"name": "spitest",
+			"path": "../../../../Documents/PlatformIO/Projects/spitest"
+		}
+	],
+	"settings": {}
+}
