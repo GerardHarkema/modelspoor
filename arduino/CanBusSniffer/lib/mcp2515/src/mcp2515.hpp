@@ -40,6 +40,10 @@ extern "C"
 	
 
 #endif
+
+#define MCP2512_CS_PINn			10
+#define MCP1512_INT_PINn		2
+
 // ----------------------------------------------------------------------------
 typedef struct
 {

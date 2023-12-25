@@ -14,20 +14,11 @@
  * LICENSE file for more details.
  */
 
-// #include <can.h>
+
 #include "Railuino.h"
-// #include "canbus/canbus.c"
 #include "mcp2515.hpp"
 #include "mcp2515.cpp"
 
-
-#if 0
-#if defined(__LEONARDO__)
-//#include "ir/infrared2.c"
-#else
-//#include "ir/infrared.c"
-#endif
-#endif
 
 size_t printHex(Print &p, unsigned long hex, int digits) {
     size_t size = 0;
@@ -233,7 +224,7 @@ void TrackController::begin() {
     pinMode(SS, OUTPUT);
 
 	//attachInterrupt(CAN_INT, enqueue, LOW);
-	attachInterrupt(0, enqueue, LOW);
+	attachInterrupt(MCP1512_INT_PINn, enqueue, LOW);
 
 	if (!can_init(5, mLoopback)) {
 		Serial.println(F("!?! Init error"));
@@ -297,8 +288,7 @@ void TrackController::generateHash() {
 // end - no interrupts
 
 void TrackController::end() {
-	//detachInterrupt(CAN_INT);
-	detachInterrupt(0);
+	detachInterrupt(MCP1512_INT_PINn);
 
 	can_t t;
 
@@ -809,7 +799,7 @@ boolean TrackControllerInfrared::setTurnout(int turnout, boolean through) {
 // ===================================================================
 // === TrackReporterS88 ==============================================
 // ===================================================================
-
+#if 0
 const int DATA = A0;
 const int CLOCK = 2;
 const int LOAD = 3;
@@ -872,12 +862,12 @@ boolean TrackReporterS88::getValue(int index) {
 	index--;
 	return bitRead(mSwitches[index / 8], index % 8);
 }
-
+#endif
 // ===================================================================
 // === TrackReporterIOX ==============================================
 // ===================================================================
 
-
+#if 0
 void SPI_begin() {
   digitalWrite(SS, HIGH);
   pinMode(SS, OUTPUT);
@@ -963,7 +953,7 @@ TrackReporterIOX::TrackReporterIOX(int modules) {
     }
   }
 
-  attachInterrupt(1, &handleInterrupt0, LOW);
+  attachInterrupt(MCP1512_INT_PINn, &handleInterrupt0, LOW);
   interrupts();
 }
 
@@ -986,3 +976,4 @@ boolean TrackReporterIOX::getValue(int index) {
   index--;
   return bitRead(mSwitches[index / 8], index % 8);
 }
+#endif

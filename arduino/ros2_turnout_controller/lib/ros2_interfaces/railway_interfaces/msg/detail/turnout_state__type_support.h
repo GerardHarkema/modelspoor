@@ -1,9 +1,9 @@
 // generated from rosidl_generator_c/resource/idl__type_support.h.em
-// with input from railway_interfaces:msg/TurnoutControl.idl
+// with input from railway_interfaces:msg/TurnoutState.idl
 // generated code does not contain a copyright notice
 
-#ifndef RAILWAY_INTERFACES__MSG__DETAIL__TURNOUT_CONTROL__TYPE_SUPPORT_H_
-#define RAILWAY_INTERFACES__MSG__DETAIL__TURNOUT_CONTROL__TYPE_SUPPORT_H_
+#ifndef RAILWAY_INTERFACES__MSG__DETAIL__TURNOUT_STATE__TYPE_SUPPORT_H_
+#define RAILWAY_INTERFACES__MSG__DETAIL__TURNOUT_STATE__TYPE_SUPPORT_H_
 
 #include "rosidl_typesupport_interface/macros.h"
 
@@ -23,11 +23,11 @@ ROSIDL_TYPESUPPORT_INTERFACE__MESSAGE_SYMBOL_NAME(
   rosidl_typesupport_c,
   railway_interfaces,
   msg,
-  TurnoutControl
+  TurnoutState
 )();
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // RAILWAY_INTERFACES__MSG__DETAIL__TURNOUT_CONTROL__TYPE_SUPPORT_H_
+#endif  // RAILWAY_INTERFACES__MSG__DETAIL__TURNOUT_STATE__TYPE_SUPPORT_H_

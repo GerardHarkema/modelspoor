@@ -447,6 +447,7 @@ class TrackController {
  * the exception of remembering power this class is stateless,
  * so the caller has to keep track of things, if necessary.
  */
+
 class TrackControllerInfrared {
 
     private:
@@ -538,6 +539,7 @@ class TrackControllerInfrared {
  * The S88 standard recommends a maximum of 30 boards, so we should be
  * on the safe side.
  */
+#if 0
 class TrackReporterS88 {
 
   private:
@@ -578,7 +580,7 @@ class TrackReporterS88 {
   boolean getValue(int index);
 
 };
-
+#endif
 // ===================================================================
 // === TrackReporterIOX ==============================================
 // ===================================================================
@@ -594,6 +596,7 @@ class TrackReporterS88 {
  * configured to different addresses via the hardware pins. All need
  * to share the interrupt line, which is configured for open drain.
  */
+#if 0
 class TrackReporterIOX {
 
 private:
@@ -634,5 +637,5 @@ public:
   boolean getValue(int index);
 
 };
-
+#endif
 #endif

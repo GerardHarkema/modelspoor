@@ -43,32 +43,35 @@ extern "C" {
 }
 #endif 
 
+#define MCP2512_CS_PINn			10
+#define MCP1512_INT_PINn		2
+
+void activateMCP2512(){
+	digitalWrite(MCP2512_CS_PINn, LOW);
+}
+
+void deactivateMCP2512(){
+	digitalWrite(MCP2512_CS_PINn, HIGH);	
+}
+
 // -------------------------------------------------------------------------
 // Schreibt/liest ein Byte ueber den Hardware SPI Bus
 
 uint8_t spi_putc( uint8_t data )
 {
-#if 0
-	// put byte in send-buffer
-	SPDR = data;
-	
-	// wait until byte was send
-	while( !( SPSR & (1<<SPIF) ) )
-		;
-#endif	
-	return 0;//SPI.transfer(data);
+	SPI.transfer(data);
 }
 
 // -------------------------------------------------------------------------
 void can_write_register( uint8_t adress, uint8_t data )
 {
-	//RESET(MCP2515_CS)
+	activateMCP2512();
 	
 	spi_putc(SPI_WRITE);
 	spi_putc(adress);
 	spi_putc(data);
 	
-	//SET(MCP2515_CS)
+	deactivateMCP2512();
 }
 
 // -------------------------------------------------------------------------
@@ -76,14 +79,14 @@ uint8_t can_read_register(uint8_t adress)
 {
 	uint8_t data;
 	
-	//RESET(MCP2515_CS)
+	activateMCP2512();
 	
 	spi_putc(SPI_READ);
 	spi_putc(adress);
 	
 	data = spi_putc(0xff);	
 	
-	//SET(MCP2515_CS)
+	deactivateMCP2512();
 	
 	return data;
 }
@@ -91,14 +94,14 @@ uint8_t can_read_register(uint8_t adress)
 // -------------------------------------------------------------------------
 void can_bit_modify(uint8_t adress, uint8_t mask, uint8_t data)
 {
-	//RESET(MCP2515_CS)
+	activateMCP2512();
 	
 	spi_putc(SPI_BIT_MODIFY);
 	spi_putc(adress);
 	spi_putc(mask);
 	spi_putc(data);
 	
-	//SET(MCP2515_CS)
+	deactivateMCP2512();
 }
 
 // ----------------------------------------------------------------------------
@@ -106,12 +109,12 @@ uint8_t can_read_status(uint8_t type)
 {
 	uint8_t data;
 	
-	//RESET(MCP2515_CS)
+	activateMCP2512();
 	
 	spi_putc(type);
 	data = spi_putc(0xff);
 	
-	//SET(MCP2515_CS)
+	deactivateMCP2512();
 	
 	return data;
 }
@@ -119,10 +122,8 @@ uint8_t can_read_status(uint8_t type)
 // -------------------------------------------------------------------------
 uint8_t can_init(uint8_t speed, bool loopback)
 {
-		
-	
-	//SET(MCP2515_CS)
-	//SET_OUTPUT(MCP2515_CS);
+
+	deactivateMCP2512();
 	
 	//RESET(P_SCK);
 	//RESET(P_MOSI);
@@ -136,23 +137,25 @@ uint8_t can_init(uint8_t speed, bool loopback)
 	//SET(MCP2515_INT);
 	
 	// active SPI master interface
-	SPCR = (1<<SPE)|(1<<MSTR) | (0<<SPR1)|(1<<SPR0);
-	SPSR = 0;
+	//SPCR = (1<<SPE)|(1<<MSTR) | (0<<SPR1)|(1<<SPR0);
+	//SPSR = 0;
 	
-	pinMode(10, OUTPUT); // set the SS pin as an output
-	//SPI.begin();         // initialize the SPI library
+	pinMode(10, MCP2512_CS_PINn); // set the SS pin as an output
+	SPI.begin();         // initialize the SPI library
+	// SPI 10 MHz
+	SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
 
 	// reset MCP2515 by software reset.
 	// After this he is in configuration mode.
-	//RESET(MCP2515_CS)
+	activateMCP2512();
 	spi_putc(SPI_RESET);
-	//SET(MCP2515_CS)
+	deactivateMCP2512();
 	
 	// wait a little bit until the MCP2515 has restarted
 	_delay_us(10);
 	
 	// load CNF1..3 Register
-	//RESET(MCP2515_CS)
+	activateMCP2512();
 	spi_putc(SPI_WRITE);
 	spi_putc(CNF3);
 	
@@ -179,7 +182,7 @@ uint8_t can_init(uint8_t speed, bool loopback)
 
 	// activate interrupts
 	spi_putc((1<<RX1IE)|(1<<RX0IE));
-	//SET(MCP2515_CS)
+	deactivateMCP2512();
 	
 	// test if we could read back the value => is the chip accessible?
 	if (can_read_register(CNF1) != 3) {
@@ -204,9 +207,6 @@ uint8_t can_init(uint8_t speed, bool loopback)
 	// reset device to normal mode
 	can_write_register(CANCTRL, loopback ? 64 : 0);
 //	SET(LED2_HIGH);
-
-
-
 	return true;
 }
 
@@ -253,7 +253,7 @@ uint8_t can_get_message(tCAN *message)
 		return 0;
 	}
 
-	//RESET(MCP2515_CS)
+	activateMCP2512();
 	spi_putc(addr);
 	
     uint32_t id1 = spi_putc(0xff);
@@ -290,7 +290,7 @@ uint8_t can_get_message(tCAN *message)
 	for (t=0;t<length;t++) {
 		message->data[t] = spi_putc(0xff);
 	}
-	//SET(MCP2515_CS)
+	deactivateMCP2512();
 	
 	// clear interrupt flag
 	if (bit_is_set(status, 6)) {
@@ -332,7 +332,7 @@ uint8_t can_send_message(tCAN *message)
 		return 0;
 	}
 	
-	//RESET(MCP2515_CS)
+	activateMCP2512();
 	spi_putc(SPI_WRITE_TX | address);
 	
         uint32_t id1 = message->id >> 21;
@@ -367,15 +367,15 @@ uint8_t can_send_message(tCAN *message)
 			spi_putc(message->data[t]);
 		}
 	}
-	//SET(MCP2515_CS)
+	deactivateMCP2512();
 	
 	_delay_us(1);
 	
 	// send message
-	//RESET(MCP2515_CS)
+	activateMCP2512();
 	address = (address == 0) ? 1 : address;
 	spi_putc(SPI_RTS | address);
-	//SET(MCP2515_CS)
+	deactivateMCP2512();
 	
 	return address;
 }

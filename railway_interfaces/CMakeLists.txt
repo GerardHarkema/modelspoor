@@ -28,7 +28,7 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/LocomotiveControl.msg"
   "msg/TurnoutControl.msg"
-  #"srv/AddThreeInts.srv"
+  "msg/TurnoutState.msg"
  )
 
 ament_package()
