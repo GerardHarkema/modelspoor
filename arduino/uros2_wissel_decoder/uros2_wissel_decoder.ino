@@ -1,4 +1,4 @@
-#include <Arduino.h>
+//#include <Arduino.h>
 #include <micro_ros_arduino.h>
 
 #include <stdio.h>
@@ -8,10 +8,10 @@
 #include <rclc/executor.h>
 
 #include <std_msgs/msg/bool.h>
-//#include <my_lib.h>
+#include <my_lib.h>
 
 
-//#include <railway_interfaces/msg/turnout_control.h>
+#include <railway_interfaces/msg/turnout_control.h>
 
 #if !defined(ESP32) && !defined(TARGET_PORTENTA_H7_M7) && !defined(ARDUINO_NANO_RP2040_CONNECT) && !defined(ARDUINO_WIO_TERMINAL)
 #error This example is only avaible for Arduino Portenta, Arduino Nano RP2040 Connect, ESP32 Dev module and Wio Terminal
