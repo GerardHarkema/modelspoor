@@ -20,7 +20,7 @@
 rcl_publisher_t publisher;
 rcl_subscription_t subscriber;
 rclc_executor_t executor;
-bool status[2] = {0};
+bool status[2] = {false};
 railway_interfaces__msg__TurnoutControl control;
 
 rclc_support_t support;
@@ -30,7 +30,6 @@ rcl_node_t node;
 #define LED_PIN     13
 #define RED_PIN_1   27
 #define GREEN_PIN_1 25
-
 
 #define RED_PIN_2   27
 #define GREEN_PIN_2 25
@@ -42,17 +41,16 @@ rcl_node_t node;
 #define RCCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){error_loop();}}
 #define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){}}
 
-#define WISSEL_ID  10
+#define WISSEL_ID   10
 #define WISSEL_ID_A  WISSEL_ID
 #define WISSEL_ID_B  (WISSEL_ID + 1)
 
 #define SSID          "BirdsModelspoor"
 #define PASSWORD      "Highway12!"
 //#define AGENT_IP      "192.168.2.27"
+  IPAddress agent_ip(192, 168, 2, 27);
 
-
-//#define AGENT_IP  agent_ip(192, 168, 1, 113)
-//#define AGENT_PORT (agent_port = 8888)
+#define AGENT_PORT 8888
 
 void error_loop(){
   while(1){
@@ -61,16 +59,6 @@ void error_loop(){
   }
 }
 
-void timer_callback(rcl_timer_t * timer, int64_t last_call_time)
-{
-  RCLC_UNUSED(last_call_time);
-  if (timer != NULL) {
-    //RCSOFTCHECK(rcl_publish(&publisher, &status[0], NULL));
-    //RCSOFTCHECK(rcl_publish(&publisher, &status[1], NULL));
-    //status[0].data != status[0].data;
-    //status[1].data != status[1].data;
-  }
-}
 
 void wissel_control_callback(const void * msgin)
 {  
@@ -80,15 +68,16 @@ void wissel_control_callback(const void * msgin)
       digitalWrite(LED_BUILTIN, (control->state == 0) ? LOW : HIGH);
       if(control->state){
         digitalWrite(RED_PIN_1, HIGH);  
-        delay(500);
+        delay(200);
         digitalWrite(RED_PIN_1, LOW);
       }
       else{
         digitalWrite(GREEN_PIN_1, HIGH);  
-        delay(500);
+        delay(200);
         digitalWrite(GREEN_PIN_1, LOW);
       }   
-      status[0] = control->state == 0;   
+      status[0] = control->state;
+      break;   
     case WISSEL_ID_B:
       if(control->state){
         digitalWrite(RED_PIN_2, HIGH);  
@@ -100,21 +89,25 @@ void wissel_control_callback(const void * msgin)
         delay(500);
         digitalWrite(GREEN_PIN_2, LOW);
       }
-      status[1] = control->state == 0;  
+      status[1] = control->state;
+      break;
+    default:
+        Serial.println("Invalid Turnout");
+
   }
 }
 
 void setup() {
 
-  //Serial.begin(115200);
-  //set_microros_wifi_transports(SSID, PASSWORD, AGENT_IP, AGENT_PORT);
-  IPAddress agent_ip(192, 168, 1, 113);
-  size_t agent_port = 8888;
 
-  char ssid[] = "WIFI_SSID";
-  char psk[]= "WIFI_PSK";
+  Serial.begin(115200);
+  Serial.println("Turnout-decoder started");
 
-  set_microros_wifi_transports(ssid, psk, agent_ip, agent_port);
+
+
+//  size_t agent_port = 8888;
+
+  set_microros_wifi_transports(SSID, PASSWORD, agent_ip, (size_t)AGENT_PORT);
 
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, HIGH);
@@ -128,9 +121,6 @@ void setup() {
   pinMode(GREEN_PIN_1, OUTPUT);
   digitalWrite(GREEN_PIN_1, LOW);
 
-  Serial.begin(115200);
-  Serial.println("Turnout-decoder started");
-
   delay(2000);
 
   allocator = rcl_get_default_allocator();
@@ -140,11 +130,11 @@ void setup() {
 
   // create node
   char node_name[40];
-  sprintf(node_name, "turnout_decoder_node%i" , WISSEL_ID_A);
+  sprintf(node_name, "turnout_decoder_node_%i" , WISSEL_ID_A);
   RCCHECK(rclc_node_init_default(&node, node_name, "", &support));
 
   char topic_name[40];
-  sprintf(topic_name, "wissel/status");
+  sprintf(topic_name, "turnout/status");
   // create publisher
   RCCHECK(rclc_publisher_init_best_effort(
     &publisher,
@@ -152,11 +142,9 @@ void setup() {
     ROSIDL_GET_MSG_TYPE_SUPPORT(railway_interfaces, msg, TurnoutState),
     topic_name));
 
-  status[0] = false;
-  status[1] = true;
 
   // create subscriber
-  sprintf(topic_name, "wissel/control" , WISSEL_ID_A);
+  sprintf(topic_name, "turnout/control" , WISSEL_ID_A);
   RCCHECK(rclc_subscription_init_default(
     &subscriber,
     &node,
@@ -174,13 +162,12 @@ void loop() {
 
     msg.number = WISSEL_ID_A;
     msg.state = status[0];
-    RCSOFTCHECK(rcl_publish(&publisher, &status[0], NULL));
+    RCSOFTCHECK(rcl_publish(&publisher, &msg, NULL));
     RCCHECK(rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100)));
 
     msg.number = WISSEL_ID_B;
     msg.state = status[1];
     RCSOFTCHECK(rcl_publish(&publisher, &msg, NULL));
     RCCHECK(rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100)));
-    //Serial.printf(".");
-    //status.data != status.data;
+
 }

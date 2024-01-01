@@ -10,6 +10,9 @@
 
 #include <std_msgs/msg/bool.h>
 
+#include <std_msgs/msg/int32.h>
+
+
 #include <my_lib.h>
 
 #include <railway_interfaces/msg/turnout_control.h>
@@ -23,8 +26,8 @@ rcl_publisher_t publisher;
 rcl_subscription_t subscriber;
 rclc_executor_t executor;
 bool status[2] = {0};
-railway_interfaces__msg__TurnoutControl control;
 
+std_msgs__msg__Bool control;
 rclc_support_t support;
 rcl_allocator_t allocator;
 rcl_node_t node;
@@ -51,7 +54,7 @@ rcl_node_t node;
 #define SSID          "BirdsModelspoor"
 #define PASSWORD      "Highway12!"
 #define AGENT_IP      "192.168.2.27"
-#define AGENT_PORT      8080
+#define AGENT_PORT      8888
 
 
 //#define AGENT_IP  agent_ip(192, 168, 1, 113)
@@ -110,8 +113,9 @@ void wissel_control_callback(const void * msgin)
 void setup() {
 
   Serial.begin(115200);
-  set_microros_wifi_transports(SSID, PASSWORD, AGENT_IP, AGENT_PORT);
+  Serial.println("Turnout-decoder started");
 
+  set_microros_wifi_transports(SSID, PASSWORD, AGENT_IP, AGENT_PORT);
 
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, HIGH);
@@ -125,8 +129,8 @@ void setup() {
   pinMode(GREEN_PIN_1, OUTPUT);
   digitalWrite(GREEN_PIN_1, LOW);
 
-  Serial.begin(115200);
-  Serial.println("Turnout-decoder started");
+  Serial.println("Turnout-decoder started 1");
+
 
   delay(2000);
 
@@ -134,41 +138,51 @@ void setup() {
 
   //create init_options
   RCCHECK(rclc_support_init(&support, 0, NULL, &allocator));
-
+  Serial.println("Turnout-decoder started 1a");
   // create node
   char node_name[40];
   sprintf(node_name, "turnout_decoder_node%i" , WISSEL_ID_A);
   RCCHECK(rclc_node_init_default(&node, node_name, "", &support));
-
-  char topic_name[40];
-  sprintf(topic_name, "wissel/status");
+  Serial.println("Turnout-decoder started 1b");
   // create publisher
+#if 0
   RCCHECK(rclc_publisher_init_best_effort(
     &publisher,
     &node,
     ROSIDL_GET_MSG_TYPE_SUPPORT(railway_interfaces, msg, TurnoutState),
-    topic_name));
+    "wissel/status"));
+  Serial.println("Turnout-decoder started 1c");
+#else
+  // create publisher
+  RCCHECK(rclc_publisher_init_default(
+    &publisher,
+    &node,
+    ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
+    "micro_ros_arduino_node_publisher"));
+#endif
 
   status[0] = false;
   status[1] = true;
-
+#if 1
   // create subscriber
-  sprintf(topic_name, "wissel/control" , WISSEL_ID_A);
   RCCHECK(rclc_subscription_init_default(
     &subscriber,
     &node,
     ROSIDL_GET_MSG_TYPE_SUPPORT(railway_interfaces, msg, TurnoutControl),
-    topic_name));
+    "wissel/control"));
 
   // create executor
   RCCHECK(rclc_executor_init(&executor, &support.context, 1, &allocator));
   // gaat dit hierinder goed?
   RCCHECK(rclc_executor_add_subscription(&executor, &subscriber, &control, &wissel_control_callback, ON_NEW_DATA));
+#endif
+    Serial.println("Turnout-decoder started 2");
 }
 
 void loop() {
     railway_interfaces__msg__TurnoutControl msg;
 
+#if 0
     msg.number = WISSEL_ID_A;
     msg.state = status[0];
     RCSOFTCHECK(rcl_publish(&publisher, &status[0], NULL));
@@ -178,6 +192,7 @@ void loop() {
     msg.state = status[1];
     RCSOFTCHECK(rcl_publish(&publisher, &msg, NULL));
     RCCHECK(rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100)));
-    //Serial.printf(".");
+#endif
+    Serial.printf(".");
     //status.data != status.data;
 }
