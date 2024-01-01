@@ -5,7 +5,6 @@ from pathlib import Path
 import rclpy
 import os
 
-from std_msgs.msg import Bool
 from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
 
@@ -14,6 +13,7 @@ from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 
 from railway_interfaces.msg import LocomotiveControl  
 from railway_interfaces.msg import TurnoutControl  
+from railway_interfaces.msg import TurnoutState  
 
 turnouts = [10, 11, 12, 13, 14, 15, 32]
 
@@ -45,12 +45,12 @@ locomotives =[stoomtrein, NS121, dieseltrein]
 
 class turnout_control(Node):
 
-
-    def __init__(self, turnout_number):
-        super().__init__('nicegui')
+    def __init__(self, turnout_number, control_publisher):
+        #super().__init__('nicegui')
 
         self.turnout_msg = TurnoutControl()
         self.turnout_msg.number = turnout_number
+        self.control_publisher = control_publisher
 
         self.turnout_number = turnout_number
         with ui.card():
@@ -63,40 +63,29 @@ class turnout_control(Node):
 
                 self.led = ui.icon('fiber_manual_record', size='3em').classes('drop-shadow text-green')
 
-        self.qos_profile = QoSProfile(
-            reliability=QoSReliabilityPolicy.BEST_EFFORT,
-            history=QoSHistoryPolicy.KEEP_LAST,
-            depth=1)
-        topic = "/turnout" + str(self.turnout_number) + "/control"
-        self.control_publisher = self.create_publisher(Bool, topic, 1)
-        topic = "/turnout" + str(self.turnout_number) + "/status"
-        self.subscription = self.create_subscription(Bool, topic, self.status_callback, qos_profile=self.qos_profile)
-
     def set_turnout(self, control) -> None:
         
-        msg = Bool()
-        msg.data = control
+        msg = TurnoutControl()
+        msg.number = self.turnout_number
+        msg.state = control
         self.control_publisher.publish(msg)
-        if control:
-            self.led.classes('text-red', remove='text-green')
-            text = 'Set turnout ' + str(self.turnout_number) + ": red" 
-        else:
-            self.led.classes('text-green', remove='text-red')
-            text = 'Set turnout ' + str(self.turnout_number)+ ": green" 
-        ui.notify(text)
 
-    def status_callback(self, msg: Bool) -> None:
-        if msg.data:
-            self.text.set_text("Rood" )
-            self.led.classes('text-green', remove='text-red')
-        else:
-            self.text.set_text("Groen" )
-            self.led.classes('text-red', remove='text-green')    
+    def set_status_indicator(self, status) -> None:
+        #print("set_status_indicator")
+        if(self.turnout_number == status.number):
+            if status.state:
+                #print("set red")
+                self.led.classes('text-red', remove='text-green')
+                text = 'Set turnout ' + str(self.turnout_number) + ": red" 
+            else:
+                #print("set green")
+                self.led.classes('text-green', remove='text-red')
+                text = 'Set turnout ' + str(self.turnout_number)+ ": green" 
 
 class locomotive_control(Node):
 
     def __init__(self, locomotive_descr):
-        super().__init__('nicegui')
+        #super().__init__('nicegui')
 
         self.locomotive_msg = LocomotiveControl()
         self.locomotive_msg.name = locomotive_descr['name']
@@ -121,8 +110,8 @@ class locomotive_control(Node):
             history=QoSHistoryPolicy.KEEP_LAST,
             depth=1)
         
-        topic = "/locomotive/control"
-        self.control_publisher = self.create_publisher(LocomotiveControl, topic, 1)
+        #topic = "/locomotive/control"
+        #self.control_publisher = self.create_publisher(LocomotiveControl, topic, 1)
 
 
 
@@ -163,6 +152,17 @@ class NiceGuiNode(Node):
 
         self.get_logger().debug(topic_list)
 
+        self.qos_profile = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=1)
+
+        topic = "/turnout/status"
+        self.subscription = self.create_subscription(TurnoutState, topic, self.status_callback, qos_profile=self.qos_profile)
+
+        topic = "/turnout/control"
+        self.control_publisher = self.create_publisher(TurnoutControl, topic, 1)
+
         self.turnoutsui= []
         self.locomotivesui = []
         with Client.auto_index_client:
@@ -172,14 +172,19 @@ class NiceGuiNode(Node):
             with ui.tab_panels(tabs, value=locomotives_tab).classes('w-full'):
                 with ui.tab_panel(turnouts_tab):
                     for turnout in turnouts:
-                        wc = turnout_control(turnout)
-                        self.turnoutsui.append(wc)
+                        tc = turnout_control(turnout, self.control_publisher)
+                        self.turnoutsui.append(tc)
                 with ui.tab_panel(locomotives_tab):
                     for loc in locomotives:
                         locomotive = locomotive_control(loc)
                         self.locomotivesui.append(locomotive)
             self.stop_btn = ui.button('STOP', on_click=lambda: self.stop()).classes('drop-shadow bg-red')
     
+    def status_callback(self, status):
+        #print("status_callback")
+        for turnout in self.turnoutsui:
+            turnout.set_status_indicator(status)
+
     def stop(self):
         pass
 
