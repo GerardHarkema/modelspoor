@@ -13,19 +13,28 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * LICENSE file for more details.
  */
-//#include <Arduino.h>
+ 
 #include "Railuino.h"
 
 const bool DEBUG = true;
 
-TrackController *ctrl;//(0xdf24, DEBUG);
+TrackController *ctrl;
 
 TrackMessage message;
 
 void setup() {
   Serial.begin(115200);
   while (!Serial);
-
+#if 0
+  Serial.print("MOSI: ");
+  Serial.println(MOSI);
+  Serial.print("MISO: ");
+  Serial.println(MISO);
+  Serial.print("SCK: ");
+  Serial.println(SCK);
+  Serial.print("SS: ");
+  Serial.println(SS);  
+#else
   ctrl = new TrackController(0xdf24, DEBUG);
   
   Serial.println();
@@ -33,10 +42,22 @@ void setup() {
   Serial.println("DIR CMND R HASH HASH LNGT DAT0 DAT1 DAT2 DAT3 DAT4 DAT5 DAT6 DAT7");
   Serial.println("--- ---- - ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----");
   ctrl->begin();
+
+#endif
+
 }
+bool once = true;
 
 void loop() {
   ctrl->receiveMessage(message);
+
+  if(once){
+    //ctrl->setTurnout(1, true);
+    //ctrl->setTurnout(2, false);
+
+    //ctrl->setPower(false);
+    once = false;
+  }
+
   delay(20);
 }
-

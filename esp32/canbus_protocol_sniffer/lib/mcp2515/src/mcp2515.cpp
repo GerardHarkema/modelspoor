@@ -26,8 +26,8 @@
 // ----------------------------------------------------------------------------
 
 
-#include <avr/io.h>
-#include <util/delay.h>
+//#include <avr/io.h>
+//#include <util/delay.h>
 #include "Arduino.h"
 #include "mcp2515.hpp"
 #include "mcp2515_defs.h"
@@ -43,6 +43,8 @@ extern "C" {
 }
 #endif 
 
+#define bit_is_set(sfr, bit) (_SFR_BYTE(sfr) & _BV(bit))
+#define bit_is_clear(sfr, bit) (!(_SFR_BYTE(sfr) & _BV(bit)))
 
 void activateMCP2512(){
 	digitalWrite(MCP2512_CS_PINn, LOW);
@@ -124,7 +126,8 @@ uint8_t can_reset(){
 	deactivateMCP2512();
 
 	// wait a little bit until the MCP2515 has restarted
-	_delay_us(10);
+	//_delay_us(10);
+	ets_delay_us(10);
 
 	return true;
 }
@@ -393,7 +396,8 @@ uint8_t can_send_message(tCAN *message)
 	}
 	deactivateMCP2512();
 	
-	_delay_us(1);
+	//_delay_us(1);
+	ets_delay_us(1);
 	
 	// send message
 	activateMCP2512();

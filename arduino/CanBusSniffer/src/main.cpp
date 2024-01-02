@@ -18,7 +18,7 @@
 
 const bool DEBUG = true;
 
-TrackController *ctrl;//(0xdf24, DEBUG);
+TrackController *ctrl;
 
 TrackMessage message;
 
@@ -34,8 +34,18 @@ void setup() {
   Serial.println("--- ---- - ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----");
   ctrl->begin();
 }
+bool once = true;
 
 void loop() {
   ctrl->receiveMessage(message);
+
+  if(once){
+    //ctrl->setTurnout(1, true);
+    //ctrl->setTurnout(2, false);
+
+    ctrl->setPower(false);
+    once = false;
+  }
+
   delay(20);
 }
