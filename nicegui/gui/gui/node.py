@@ -104,6 +104,16 @@ class locomotive_control(Node):
                 self.forward = ui.button('Forward')#, on_click=lambda: self.set_turnout(False)).classes('drop-shadow bg-green')
                 self.slider = ui.slider(min=0, max=100, value=50)
                 ui.label().bind_text_from(self.slider, 'value')
+            
+            with ui.dialog() as dialog, ui.card():
+                ui.label('Functions')
+                for i in range(10):
+                    text = "F" + str(i)
+                    ui.button(text)
+
+                ui.button('Close', on_click=dialog.close)
+
+            ui.button('Functions', on_click=dialog.open)
         
         self.qos_profile = QoSProfile(
             reliability=QoSReliabilityPolicy.BEST_EFFORT,

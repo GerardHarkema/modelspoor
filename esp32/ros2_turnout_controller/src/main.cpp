@@ -31,8 +31,8 @@ rcl_node_t node;
 #define RED_PIN_1   27
 #define GREEN_PIN_1 25
 
-#define RED_PIN_2   27
-#define GREEN_PIN_2 25
+#define RED_PIN_2   32
+#define GREEN_PIN_2 12
 
 #define RCCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){error_loop();}}
 #define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){}}
@@ -120,6 +120,12 @@ void setup() {
 
   pinMode(GREEN_PIN_1, OUTPUT);
   digitalWrite(GREEN_PIN_1, LOW);
+
+  pinMode(RED_PIN_2, OUTPUT);
+  digitalWrite(RED_PIN_2, LOW);
+
+  pinMode(GREEN_PIN_2, OUTPUT);
+  digitalWrite(GREEN_PIN_2, LOW);
 
   delay(2000);
 

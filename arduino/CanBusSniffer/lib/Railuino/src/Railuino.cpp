@@ -287,7 +287,7 @@ void TrackController::generateHash() {
 // end - no interrupts
 
 void TrackController::end() {
-	detachInterrupt(MCP1512_INT_PINn);
+	detachInterrupt(digitalPinToInterrupt(MCP1512_INT_PINn));
 
 	can_t t;
 

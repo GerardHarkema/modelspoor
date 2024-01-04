@@ -39,13 +39,28 @@ bool once = true;
 void loop() {
   ctrl->receiveMessage(message);
 
-  if(once){
-    //ctrl->setTurnout(1, true);
-    //ctrl->setTurnout(2, false);
-
-    ctrl->setPower(false);
-    once = false;
+  if (Serial.available()){
+    int menuChoice = Serial.parseInt();
+    switch (menuChoice) {
+      case 1:
+        ctrl->setTurnout(0x3000, false);
+        break;
+      case 2:
+        ctrl->setTurnout(0x3000, true);
+        break;
+      case 3:
+        ctrl->setPower(false);
+        break;
+      case 4:
+        ctrl->setPower(true);
+        break;
+    }
   }
+  byte position, power;
+  ctrl->getAccessory(0x3000, &position, &power);// Position Rood = 0, Groen = 1
+  Serial.println(position);
+  //Serial.println(power);
+
 
   delay(20);
 }
