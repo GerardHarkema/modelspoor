@@ -128,13 +128,13 @@ size_t TrackMessage::printTo(Print& p) const {
     size_t size = 0;
 
     size += printHex(p, hash, 4);
-    size += p.print(response ? " R " : "   ");
+    size += p.print(response ? " R  " : "    ");
     size += printHex(p, command, 2);
-    size += p.print(" ");
+    size += p.print("    ");
     size += printHex(p, length, 1);
 
     for (int i = 0; i < length; i++) {
-        size += p.print(" ");
+        size += p.print("   ");
         size += printHex(p, data[i], 2);
     }
 
@@ -328,7 +328,7 @@ boolean TrackController::receiveMessage(TrackMessage &message) {
 
 	//Serial.println(result);
 	if (result) {
-		Serial.print("*");
+//		Serial.print("*");
 
 
 //	boolean result = /* can_check_message() && */ can_get_message(&can);

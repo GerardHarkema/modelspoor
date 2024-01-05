@@ -39,8 +39,13 @@ extern "C"
 
 #endif
 
-#define MCP2512_CS_PINn			5 //10
-#define MCP1512_INT_PINn		4   //2
+#if defined(__AVR_ATmega328P__)
+	#define MCP2512_CS_PINn			10
+	#define MCP1512_INT_PINn		2
+#else
+	#define MCP2512_CS_PINn			5
+	#define MCP1512_INT_PINn		4
+#endif
 
 // ----------------------------------------------------------------------------
 typedef struct

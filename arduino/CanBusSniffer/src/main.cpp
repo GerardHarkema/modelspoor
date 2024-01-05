@@ -27,17 +27,34 @@ void setup() {
   while (!Serial);
 
   ctrl = new TrackController(0xdf24, DEBUG);
-  
-  Serial.println();
-  Serial.println();
-  Serial.println("DIR CMND R HASH HASH LNGT DAT0 DAT1 DAT2 DAT3 DAT4 DAT5 DAT6 DAT7");
-  Serial.println("--- ---- - ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----");
+  if(DEBUG){  
+    Serial.println();
+    Serial.println();
+    Serial.println("DIR HASH R CMND LNGT DAT0 DAT1 DAT2 DAT3 DAT4 DAT5 DAT6 DAT7");
+    Serial.println("--- ---- - ---- ---- ---- ---- ---- ---- ---- ---- ---- ----");
+  }
   ctrl->begin();
 }
 bool once = true;
 
 void loop() {
   ctrl->receiveMessage(message);
+
+#if 0
+    //Serial.print("ID :");
+    //Serial.println(message., HEX);
+    Serial.print("COMMAND:");
+    Serial.print("0x");Serial.println(message.command, HEX);
+    Serial.print("DLC:");
+    Serial.print("0x");Serial.println(message.length, HEX);
+    Serial.print("DATA:");
+
+    for (int i = 0; i < message.length; i++) {
+      Serial.print("0x");Serial.print(message.data[i], HEX);Serial.print(" ");
+    }
+    
+    Serial.println();
+#endif
 
   if (Serial.available()){
     int menuChoice = Serial.parseInt();
@@ -56,10 +73,12 @@ void loop() {
         break;
     }
   }
+#if 0
   byte position, power;
   ctrl->getAccessory(0x3000, &position, &power);// Position Rood = 0, Groen = 1
   Serial.println(position);
   //Serial.println(power);
+#endif
 
 
   delay(20);
