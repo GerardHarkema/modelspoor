@@ -432,6 +432,18 @@ boolean TrackController::setPower(boolean power) {
 	return exchangeMessage(message, message, 1000);
 }
 
+
+boolean TrackController::getPower(boolean *power) {
+	TrackMessage message;
+
+	message.clear();
+	message.command = 0x00;
+	message.length = 0x00;
+	//message.data[4] = power ? 0x01 : 0x00;
+
+	exchangeMessage(message, message, 1000);
+	Serial.println(message.length);
+}
 boolean TrackController::setLocoDirection(word address, byte direction) {
 	TrackMessage message;
 
