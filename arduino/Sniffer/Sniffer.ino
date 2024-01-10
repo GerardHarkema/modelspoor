@@ -1,7 +1,8 @@
 /*********************************************************************
- * Railuino - Hacking your Märklin
+ * TrackController - Hacking your Märklin
  *
- * Copyright (C) 2012 Joerg Pleumann
+ * Original version Railuino Copyright (C) 2012 Joerg Pleumann
+ * Adapted by Gerard Harkema januari 2024
  * 
  * This example is free software; you can redistribute it and/or
  * modify it under the terms of the Creative Commons Zero License,
@@ -30,8 +31,8 @@ void setup() {
   
   Serial.println();
   Serial.println();
-  Serial.println("DIR CMND R HASH HASH LNGT DAT0 DAT1 DAT2 DAT3 DAT4 DAT5 DAT6 DAT7");
-  Serial.println("--- ---- - ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----");
+  Serial.println("DIR HASH R CMND LNGT DAT0 DAT1 DAT2 DAT3 DAT4 DAT5 DAT6 DAT7");
+  Serial.println("--- ---- - ---- ---- ---- ---- ---- ---- ---- ---- ---- ----");
   ctrl->begin();
 }
 

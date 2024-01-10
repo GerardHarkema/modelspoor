@@ -1,7 +1,8 @@
 /*********************************************************************
- * Railuino - Hacking your Märklin
+ * TrackController - Hacking your Märklin
  *
- * Copyright (C) 2012 Joerg Pleumann
+ * Original version Railuino Copyright (C) 2012 Joerg Pleumann
+ * Adapted by Gerard Harkema januari 2024
  * 
  * This example is free software; you can redistribute it and/or
  * modify it under the terms of the Creative Commons Zero License,
@@ -17,6 +18,8 @@
 #include "TrackController.h"
 
 const bool DEBUG = true;
+
+bool TrackPower = false;
 
 TrackController *ctrl;
 
@@ -38,22 +41,39 @@ void setup() {
 bool once = true;
 
 void loop() {
-  ctrl->receiveMessage(message);
-
 #if 0
+  if(ctrl->receiveMessage(message)){
     //Serial.print("ID :");
     //Serial.println(message., HEX);
-    Serial.print("COMMAND:");
+    Serial.print("COMMAND: ");
     Serial.print("0x");Serial.println(message.command, HEX);
-    Serial.print("DLC:");
-    Serial.print("0x");Serial.println(message.length, HEX);
-    Serial.print("DATA:");
+    Serial.print("DLC: ");
+    Serial.println(message.length, HEX);
+    Serial.print("DATA: ");
 
     for (int i = 0; i < message.length; i++) {
       Serial.print("0x");Serial.print(message.data[i], HEX);Serial.print(" ");
     }
     
     Serial.println();
+    switch(message.command){
+      case SYSTEM_BEFEHL:
+        switch(message.data[4]){
+          case SYSTEM_STOP:
+              TrackPower = false;
+            break;
+          case SYSTEM_GO:
+              TrackPower = true;
+            break;
+          default:
+            break;
+        }
+        break;
+      default:
+        break;
+    }
+
+  }
 #endif
 
   if (Serial.available()){
@@ -67,19 +87,23 @@ void loop() {
         break;
       case 3:
         ctrl->setPower(false);
+        TrackPower = false;
         break;
       case 4:
         ctrl->setPower(true);
+        TrackPower = true;
+        break;
+      case 6:
+        byte position, power;
+        ctrl->getAccessory(0x3000, &position, &power);// Position Rood = 0, Groen = 1
+        Serial.println(position);
+        //Serial.println(power);
+        break;
+      case 7:
+        boolean powerb;
+        ctrl->getPower(&powerb);
         break;
     }
   }
-#if 0
-  byte position, power;
-  ctrl->getAccessory(0x3000, &position, &power);// Position Rood = 0, Groen = 1
-  Serial.println(position);
-  //Serial.println(power);
-#endif
-
-
   delay(20);
 }

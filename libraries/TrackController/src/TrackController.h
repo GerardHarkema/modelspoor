@@ -31,7 +31,7 @@
 /**
  * Version of Railuino library and required connection box software.
  */
-#define RAILUINO_VERSION 0x005A // 0.90
+#define TRACK_CONTROL_VERSION 0x0101 // 1.01
 #define TRACKBOX_VERSION 0x0127 // 1.39
 
 /**
@@ -82,6 +82,39 @@
 
 #define ACC_WHITE    3
 #define ACC_SH0      3
+
+
+
+// Commando's
+
+
+#define SYSTEM_BEFEHL         0x00
+#define DISCOVERY             0x01
+#define MFX_BIND              0x02
+#define MFX_VERIFY            0x03
+#define LOC_GESCHWINDIGHEID   0x04
+#define LOC_RICHTUNG          0x05
+#define LOC_FUNCTION          0x06
+#define READ_CONFIG           0x07
+#define WRITE_CONFIG          0x08
+#define ZUBEHOR_SCHALTEN      0x0b
+#define ZUBEHOR_CONFIG        0x0c
+#define S88_POLLING           0x10
+#define S88_EVENT             0x11
+#define SX1_EVENT             0x12
+#define PING                  0x18
+#define STATUSDATEN           0x1d
+
+
+// Subcomando's SYSTEM_BEFEHL
+#define SYSTEM_STOP       0x00
+#define SYSTEM_GO         0x01
+#define SYSTEM_HALT       0x02
+#define LOC_NOTHALT       0x03
+#define LOC_ZYCLUS_STOP   0x04
+#define NUEANMELDERZAHLER 0x09
+#define UBERLAST          0x0a
+#define STATUS            0x0b
 
 /**
  * Represents a message going through the Marklin CAN bus. More or
@@ -289,6 +322,7 @@ class TrackController {
      * reflects whether the call was successful.
      */
     boolean setPower(boolean power);
+    boolean getPower(boolean *power);
     
     /**
      * Sets the direction of the given locomotive. Valid directions
