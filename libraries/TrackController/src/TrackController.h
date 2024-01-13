@@ -116,6 +116,13 @@
 #define UBERLAST          0x0a
 #define STATUS            0x0b
 
+// Memory location defines
+
+#define TURNOUT_BASE_ADDRESS    0x3000
+#define TURNOUT_END_ADDRESS     0x3fff
+
+
+
 /**
  * Represents a message going through the Marklin CAN bus. More or
  * less a beautified version of the real CAN message. You normally

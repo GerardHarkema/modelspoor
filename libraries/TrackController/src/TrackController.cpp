@@ -67,7 +67,11 @@ volatile int posWrite = 0;
 
 volatile boolean lastOpWasWrite = false;
 
-void enqueue() {
+#ifndef IRAM_ATTR
+	#define IRAM_ATTR // definition for Arduino UNO platform
+#endif 
+
+void IRAM_ATTR enqueue() {
 	//Serial.println("!");
 	if (posWrite == posRead && lastOpWasWrite) {
 		//Serial.println("!!! Buffer full");
@@ -222,9 +226,12 @@ void TrackController::begin() {
     // and we just hang. Do not delete!
  
    	pinMode(SS, OUTPUT);
+//#define  MCP1512_INT_PINn 16
+   	pinMode(MCP1512_INT_PINn,  INPUT);
+	attachInterrupt(digitalPinToInterrupt(MCP1512_INT_PINn), enqueue, FALLING);
+//	attachInterrupt(MCP1512_INT_PINn, enqueue, LOW);
 
-   	pinMode(MCP1512_INT_PINn, INPUT);
-	attachInterrupt(digitalPinToInterrupt(MCP1512_INT_PINn), enqueue, LOW);
+		interrupts();// ???
 
 	if (!can_init(5, mLoopback)) {
 		Serial.println(F("!?! Init error"));
@@ -442,7 +449,9 @@ boolean TrackController::getPower(boolean *power) {
 	//message.data[4] = power ? 0x01 : 0x00;
 
 	exchangeMessage(message, message, 1000);
-	Serial.println(message.length);
+	//Serial.println(message.length);
+
+	return true;
 }
 boolean TrackController::setLocoDirection(word address, byte direction) {
 	TrackMessage message;
@@ -640,6 +649,13 @@ boolean TrackController::getAccessory(word address, byte *position, byte *power)
 	} else {
 		return false;
 	}
+}
+
+boolean TrackController::getTurnout(word address, boolean *straight){
+	byte *position, *power;
+	boolean result = getAccessory(address, position, power);
+	straight = (boolean *)position;
+	return result;
 }
 
 boolean TrackController::writeConfig(word address, word number, byte value) {

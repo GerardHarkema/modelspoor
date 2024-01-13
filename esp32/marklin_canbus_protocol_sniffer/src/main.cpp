@@ -16,7 +16,7 @@
  
 #include "TrackController.h"
 
-const bool DEBUG = false;
+const bool DEBUG = true;
 
 TrackController *ctrl;
 
@@ -26,24 +26,21 @@ void setup() {
   Serial.begin(115200);
   while (!Serial);
 #if 0
-  Serial.print("MOSI: ");
-  Serial.println(MOSI);
-  Serial.print("MISO: ");
-  Serial.println(MISO);
-  Serial.print("SCK: ");
-  Serial.println(SCK);
-  Serial.print("SS: ");
-  Serial.println(SS);  
-#else
+  Serial.print("MOSI: ");Serial.println(MOSI);
+  Serial.print("MISO: ");Serial.println(MISO);
+  Serial.print("SCK: ");Serial.println(SCK);
+  Serial.print("SS: ");Serial.println(SS);  
+#endif
   ctrl = new TrackController(0xdf24, DEBUG);
   
-  Serial.println();
-  Serial.println();
-  Serial.println("DIR CMND R HASH HASH LNGT DAT0 DAT1 DAT2 DAT3 DAT4 DAT5 DAT6 DAT7");
-  Serial.println("--- ---- - ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----");
+  if(DEBUG){
+    Serial.println();
+    Serial.println();
+    Serial.println("DIR CMND R HASH HASH LNGT DAT0 DAT1 DAT2 DAT3 DAT4 DAT5 DAT6 DAT7");
+    Serial.println("--- ---- - ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----");
+  }
   ctrl->begin();
 
-#endif
 
 }
 bool once = true;
@@ -58,6 +55,7 @@ void loop() {
     //ctrl->setPower(false);
     once = false;
   }
+	//Serial.print("*");
 
   delay(20);
 }
