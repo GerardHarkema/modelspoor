@@ -12,6 +12,8 @@
 
 #include <railway_interfaces/msg/turnout_control.h>
 #include <railway_interfaces/msg/turnout_state.h>
+#include <railway_interfaces/msg/locomotive_control.h>
+#include <railway_interfaces/msg/locomotive_state.h>
 
 #include "rail_track_def.h"
 
@@ -30,11 +32,20 @@ TrackController *ctrl;
 TrackMessage message;
 
 rcl_publisher_t turnout_status_publisher;
-rcl_publisher_t turnout_control_publisher;
+//rcl_publisher_t turnout_control_publisher;
 rcl_subscription_t turnout_control_subscriber;
+
+rcl_publisher_t locomoitive_status_publisher;
+rcl_subscription_t locomotive_control_subscriber;
+
+rcl_publisher_t power_status_publisher;
+rcl_subscription_t power_control_subscriber;
+
 rclc_executor_t executor;
 
-railway_interfaces__msg__TurnoutControl control;
+railway_interfaces__msg__TurnoutControl turnout_control;
+railway_interfaces__msg__LocomotiveControl locomotive_control;
+std_msgs__msg__Bool power_control;
 
 bool turnout_status[NUMBER_OF_ACTIVE_TURNOUTS_C] = {false};
 
@@ -46,7 +57,6 @@ rcl_timer_t timer;
 #define RCCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){error_loop();}}
 #define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){}}
 
-
 void error_loop(){
   while(1){
     digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
@@ -57,9 +67,9 @@ void error_loop(){
 bool lookupTurnoutIndex(int turnout_number, int *turnout_index){
   int i;
   for(i = 0; i < NUMBER_OF_ACTIVE_TURNOUTS_C; i++){
-    if(active_turnouts_c[i] = turnout_number) break;
+    if(active_turnouts_c[i] == turnout_number) break;
   }
-  if(i = NUMBER_OF_ACTIVE_TURNOUTS_C) return false;
+  if(i == NUMBER_OF_ACTIVE_TURNOUTS_C) return false;
   *turnout_index = i;
   return true;
 }
@@ -67,20 +77,24 @@ bool lookupTurnoutIndex(int turnout_number, int *turnout_index){
 void timer_callback(rcl_timer_t * timer, int64_t last_call_time) {
   RCLC_UNUSED(last_call_time);
   if (timer != NULL) {
-
-    railway_interfaces__msg__TurnoutState msg;
+#if 0
+    railway_interfaces__msg__TurnoutState turnout_msg;
 
     for(int i = 0; i < NUMBER_OF_ACTIVE_TURNOUTS_C; i++){
-      msg.number = active_turnouts_c[i];
-      msg.state = turnout_status[i];
-      RCSOFTCHECK(rcl_publish(&turnout_status_publisher, &msg, NULL));
+      //turnout_msg.number = active_turnouts_c[i];
+      //turnout_msg.state = turnout_status[i];
+      //RCSOFTCHECK(rcl_publish(&turnout_status_publisher, &turnout_msg, NULL));
+      sleep(10);
     }
-
+    std_msgs__msg__Bool power_msg;
+    power_msg.data = TrackPower;
+    //RCSOFTCHECK(rcl_publish(&power_status_publisher, &power_msg, NULL));
+#endif
   }
 }
 
 
-void wissel_control_callback(const void * msgin)
+void turnout_control_callback(const void * msgin)
 {  
   const railway_interfaces__msg__TurnoutControl * control = (const railway_interfaces__msg__TurnoutControl *)msgin;
   int index;
@@ -93,9 +107,26 @@ void wissel_control_callback(const void * msgin)
 //  else Serial.println("Invalid Turnout");
 }
 
+void locomotive_control_callback(const void * msgin)
+{  
+//  const railway_interfaces__msg__TurnoutControl * control = (const railway_interfaces__msg__TurnoutControl *)msgin;
+
+//  else Serial.println("Invalid Turnout");
+}
+
+void power_control_callback(const void * msgin)
+{  
+  const std_msgs__msg__Bool * control = (const std_msgs__msg__Bool *)msgin;
+  Serial.println("power_control_callback");
+  ctrl->setPower(control->data);
+  TrackPower = control->data;
+//  else Serial.println("Invalid Turnout");
+}
+
 void setup() {
   Serial.begin(115200);
-    while (!Serial);
+  while (!Serial);
+  delay(2000);
   Serial.println("Marklin canbus controller started");
 
   ctrl = new TrackController(0xdf24, DEBUG);
@@ -106,14 +137,15 @@ void setup() {
     Serial.println("--- ---- - ---- ---- ---- ---- ---- ---- ---- ---- ---- ----");
   }
   ctrl->begin();
-
+#if 0
   for(int i = 0; i < NUMBER_OF_ACTIVE_TURNOUTS_C; i++){
     ctrl->getTurnout(TURNOUT_BASE_ADDRESS + i + 1, &turnout_status[i]);
   }
+#endif
 
-//  size_t agent_port = 8888;
 
   set_microros_wifi_transports(SSID, PASSWORD, agent_ip, (size_t)AGENT_PORT);
+  Serial.println("!!! Ready for operating 2!!!");
 
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
@@ -121,37 +153,71 @@ void setup() {
   delay(2000);
 
   allocator = rcl_get_default_allocator();
-
+  Serial.println("!!! Ready for operating 2b!!!");
   //create init_options
   RCCHECK(rclc_support_init(&support, 0, NULL, &allocator));
+  Serial.println("!!! Ready for operating 2c!!!");
 
   // create node
-  char node_name[40];
-  sprintf(node_name, "railtrack/canbus_controller");
-  RCCHECK(rclc_node_init_default(&node, node_name, "", &support));
+  RCCHECK(rclc_node_init_default(&node, "railtrack_canbus_controller", "", &support));
 
+  Serial.println("!!! Ready for operating 3!!!");
   char topic_name[40];
-  sprintf(topic_name, "railtrack/turnout/turnout_status");
+  sprintf(topic_name, "railtrack/turnout/status");
   // create turnout_status_publisher
   RCCHECK(rclc_publisher_init_best_effort(
     &turnout_status_publisher,
     &node,
     ROSIDL_GET_MSG_TYPE_SUPPORT(railway_interfaces, msg, TurnoutState),
     topic_name));
-
-
+  
   // create turnout_control_subscriber
   sprintf(topic_name, "railtrack/turnout/control");
   // create turnout_status_publisher
+#if 0
   RCCHECK(rclc_publisher_init_best_effort(
     &turnout_control_publisher,
     &node,
     ROSIDL_GET_MSG_TYPE_SUPPORT(railway_interfaces, msg, TurnoutControl),
     topic_name));
+#endif
   RCCHECK(rclc_subscription_init_default(
     &turnout_control_subscriber,
     &node,
     ROSIDL_GET_MSG_TYPE_SUPPORT(railway_interfaces, msg, TurnoutControl),
+    topic_name));
+
+  sprintf(topic_name, "railtrack/locomotive/status");
+  // create locomotive_status_publisher
+  RCCHECK(rclc_publisher_init_best_effort(
+    &locomoitive_status_publisher,
+    &node,
+    ROSIDL_GET_MSG_TYPE_SUPPORT(railway_interfaces, msg, LocomotiveState),
+    topic_name));
+
+  sprintf(topic_name, "railtrack/locomotive/control");
+  // create locomotive_control_subscriber
+  RCCHECK(rclc_subscription_init_default(
+    &locomotive_control_subscriber,
+    &node,
+    ROSIDL_GET_MSG_TYPE_SUPPORT(railway_interfaces, msg, LocomotiveControl),
+    topic_name));
+
+  sprintf(topic_name, "railtrack/power_status");
+  // create power_status_publisher
+  RCCHECK(rclc_publisher_init_best_effort(
+    &power_status_publisher,
+    &node,
+    ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Bool),
+    topic_name));
+
+
+  sprintf(topic_name, "railtrack/power_control");
+  // create power_control_subscriber
+  RCCHECK(rclc_subscription_init_default(
+    &power_control_subscriber,
+    &node,
+    ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Bool),
     topic_name));
 
   // create timer,
@@ -162,17 +228,29 @@ void setup() {
     RCL_MS_TO_NS(timer_timeout),
     timer_callback));
 
+
   // create executor
-  RCCHECK(rclc_executor_init(&executor, &support.context, 1, &allocator));
+  int number_of_executors = 4;
+//return;
+
+  
+  RCCHECK(rclc_executor_init(&executor, &support.context, number_of_executors, &allocator));
+  RCCHECK(rclc_executor_add_timer(&executor, &timer));
   // gaat dit hierinder goed?
-  RCCHECK(rclc_executor_add_subscription(&executor, &turnout_control_subscriber, &control, &wissel_control_callback, ON_NEW_DATA));
+  RCCHECK(rclc_executor_add_subscription(&executor, &turnout_control_subscriber, &turnout_control, &turnout_control_callback, ON_NEW_DATA));
+  RCCHECK(rclc_executor_add_subscription(&executor, &locomotive_control_subscriber, &locomotive_control, &locomotive_control_callback, ON_NEW_DATA));
+  RCCHECK(rclc_executor_add_subscription(&executor, &power_control_subscriber, &power_control, &power_control_callback, ON_NEW_DATA));
+
+  Serial.println("!!! Ready for operating !!!");
 
 }
 
 void loop() {
 
-  if(ctrl->receiveMessage(message)){
+  Serial.print("*");
 #if 1
+  if(ctrl->receiveMessage(message)){
+#if 0
     Serial.print("COMMAND: ");
     Serial.print("0x");Serial.println(message.command, HEX);
     Serial.print("DLC: ");
@@ -209,16 +287,19 @@ void loop() {
           turnout_number = adress[0] - TURNOUT_BASE_ADDRESS + 1; //? 
           msg.number = turnout_number;
           msg.state = position[0] ? true : false;
+#if 0
           RCSOFTCHECK(rcl_publish(&turnout_control_publisher, &msg, NULL));
           int index;
           if(lookupTurnoutIndex(turnout_number, &index)){
             turnout_status[index] = msg.state;
           }     
+#endif
   
         break;
       default:
         break;    }
   }
+#endif
   delay(20);
 
   RCSOFTCHECK(rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100)));

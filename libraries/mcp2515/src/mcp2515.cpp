@@ -48,11 +48,14 @@ extern "C" {
 #define bit_is_clear(sfr, bit) (!(_SFR_BYTE(sfr) & _BV(bit)))
 
 void activateMCP2512(){
+	// SPI 10 MHz
+	SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
 	digitalWrite(MCP2512_CS_PINn, LOW);
 }
 
 void deactivateMCP2512(){
-	digitalWrite(MCP2512_CS_PINn, HIGH);	
+	digitalWrite(MCP2512_CS_PINn, HIGH);
+	SPI.endTransaction();	
 }
 
 // -------------------------------------------------------------------------
@@ -160,7 +163,7 @@ uint8_t can_init(uint8_t speed, bool loopback)
 
 	SPI.begin();         // initialize the SPI library
 	// SPI 10 MHz
-	SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
+	//SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
 
 	// reset MCP2515 by software reset.
 	// After this he is in configuration mode.

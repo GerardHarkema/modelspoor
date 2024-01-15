@@ -51,9 +51,9 @@ rcl_timer_t timer;
 bool lookupTurnoutIndex(int turnout_number, int *turnout_index){
   int i;
   for(i = 0; i < number_of_turnouts; i++){
-    if(turnout_config[i].turnout_number = turnout_number) break;
+    if(turnout_config[i].turnout_number == turnout_number) break;
   }
-  if(i = number_of_turnouts) return false;
+  if(i == number_of_turnouts) return false;
   *turnout_index = i;
   return true;
 }
@@ -70,7 +70,10 @@ void wissel_control_callback(const void * msgin)
 { 
   int turnout_index;
   const railway_interfaces__msg__TurnoutControl * control = (const railway_interfaces__msg__TurnoutControl *)msgin;
+  //Serial.println("callback");
+  //Serial.println(control->number);
   if(lookupTurnoutIndex(control->number, &turnout_index)){
+    //Serial.println("setturnout");
       uint pin = control->state ? turnout_config[turnout_index].green_pin : turnout_config[turnout_index].red_pin;
 
       digitalWrite(pin, HIGH);  
@@ -93,6 +96,7 @@ void timer_callback(rcl_timer_t * timer, int64_t last_call_time) {
       msg.number = turnout_config[i].turnout_number;
       msg.state = turnout_status[i];
       RCSOFTCHECK(rcl_publish(&turnout_status_publisher, &msg, NULL));
+        delay(100);
     }
   }
 }
@@ -100,15 +104,12 @@ void timer_callback(rcl_timer_t * timer, int64_t last_call_time) {
 
 void setup() {
 
-
   Serial.begin(115200);
   Serial.println("Turnout-decoder started");
 
   turnout_status = (bool *)malloc(number_of_turnouts * sizeof(bool));
 
   EEPROM.begin(number_of_turnouts);
-
-//  size_t agent_port = 8888;
 
   set_microros_wifi_transports(SSID, PASSWORD, agent_ip, (size_t)AGENT_PORT);
 
@@ -138,7 +139,7 @@ void setup() {
   RCCHECK(rclc_node_init_default(&node, node_name, "", &support));
 
   char topic_name[40];
-  sprintf(topic_name, "railtrack/turnout/turnout_status");
+  sprintf(topic_name, "railtrack/turnout/status");
   // create turnout_status_publisher
   RCCHECK(rclc_publisher_init_best_effort(
     &turnout_status_publisher,
@@ -164,8 +165,10 @@ void setup() {
     timer_callback));
 
   // create executor
-  RCCHECK(rclc_executor_init(&executor, &support.context, 1, &allocator));
+  int number_of_executors = 2;
+  RCCHECK(rclc_executor_init(&executor, &support.context, number_of_executors, &allocator));
   // gaat dit hierinder goed?
+  RCCHECK(rclc_executor_add_timer(&executor, &timer));
   RCCHECK(rclc_executor_add_subscription(&executor, &turnout_control_subscriber, &control, &wissel_control_callback, ON_NEW_DATA));
 
 }

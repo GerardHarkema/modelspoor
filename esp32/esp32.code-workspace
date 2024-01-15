@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"path": "ros2_marklin_canbus_controller"
+		},
+		{
+			"path": "marklin_canbus_protocol_sniffer"
+		},
+		{
+			"path": "ros2_turnout_controller"
+		},
+		{
+			"name": "tft-test",
+			"path": "tft-test"
+		}
+	],
+	"settings": {}
+}

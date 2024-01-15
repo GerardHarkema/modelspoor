@@ -11,11 +11,14 @@ from rclpy.node import Node
 from nicegui import Client, app, ui, ui_run
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 
+
+from std_msgs.msg import Bool;
 from railway_interfaces.msg import LocomotiveControl  
+from railway_interfaces.msg import LocomotiveState  
 from railway_interfaces.msg import TurnoutControl  
 from railway_interfaces.msg import TurnoutState  
 
-turnouts = [10, 11, 12, 13, 14, 15, 32]
+turnouts = [1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 16]
 
 stoomtrein  = {
     "name" : "Stoomtrein",
@@ -58,8 +61,8 @@ class turnout_control(Node):
             ui.label(text)
 
             with ui.grid(columns=3):
-                self.green_button = ui.button('Green', on_click=lambda: self.set_turnout(False)).classes('drop-shadow bg-green')
-                self.rood_button = ui.button('Red', on_click=lambda: self.set_turnout(True)).classes('drop-shadow bg-red')
+                self.green_button = ui.button('Green', on_click=lambda: self.set_turnout(True)).classes('drop-shadow bg-green')
+                self.rood_button = ui.button('Red', on_click=lambda: self.set_turnout(False)).classes('drop-shadow bg-red')
 
                 self.led = ui.icon('fiber_manual_record', size='3em').classes('drop-shadow text-green')
 
@@ -74,13 +77,13 @@ class turnout_control(Node):
         #print("set_status_indicator")
         if(self.turnout_number == status.number):
             if status.state:
-                #print("set red")
-                self.led.classes('text-red', remove='text-green')
-                text = 'Set turnout ' + str(self.turnout_number) + ": red" 
-            else:
                 #print("set green")
                 self.led.classes('text-green', remove='text-red')
                 text = 'Set turnout ' + str(self.turnout_number)+ ": green" 
+            else:
+                #print("set red")
+                self.led.classes('text-red', remove='text-green')
+                text = 'Set turnout ' + str(self.turnout_number) + ": red" 
 
 class locomotive_control(Node):
 
@@ -126,8 +129,8 @@ class locomotive_control(Node):
 
 
 '''                
-        topic = "/locomotive" + str(self.turnout_number) + "/status"
-        self.subscription = self.create_subscription(Bool, topic, self.status_callback, qos_profile=self.qos_profile)
+        topic = "/railtrack/locomotive" + str(self.turnout_number) + "/status"
+        self.loc_status_subscription = self.create_subscription(Bool, topic, self.turnout_callback, qos_profile=self.qos_profile)
 
     def set_turnout(self, control) -> None:
         
@@ -142,7 +145,7 @@ class locomotive_control(Node):
             text = 'Set turnout ' + str(self.turnout_number)+ ": green" 
         ui.notify(text)
 
-    def status_callback(self, msg: Bool) -> None:
+    def turnout_callback(self, msg: Bool) -> None:
         if msg.data:
             self.text.set_text("Rood" )
             self.led.classes('text-green', remove='text-red')
@@ -167,11 +170,23 @@ class NiceGuiNode(Node):
             history=QoSHistoryPolicy.KEEP_LAST,
             depth=1)
 
-        topic = "/turnout/status"
-        self.subscription = self.create_subscription(TurnoutState, topic, self.status_callback, qos_profile=self.qos_profile)
+        topic = "/railtrack/turnout/status"
+        self.turnout_status_subscription = self.create_subscription(TurnoutState, topic, self.turnout_status_callback, qos_profile=self.qos_profile)
 
-        topic = "/turnout/control"
-        self.control_publisher = self.create_publisher(TurnoutControl, topic, 1)
+        topic = "/railtrack/turnout/control"
+        self.turnout_control_publisher = self.create_publisher(TurnoutControl, topic, 1)
+
+        topic = "/railtrack/locomotive/status"
+        self.locomotive_status_subscription = self.create_subscription(LocomotiveState, topic, self.locomotive_status_callback, qos_profile=self.qos_profile)
+
+        topic = "/railtrack/locomotive/control"
+        self.locomotive_control_publisher = self.create_publisher(LocomotiveControl, topic, 1)
+
+        topic = "/railtrack/power_status"
+        self.power_status_subscription = self.create_subscription(Bool, topic,  self.power_status_callback, qos_profile=self.qos_profile)
+
+        topic = "/railtrack/power_control"
+        self.power_control_publisher = self.create_publisher(Bool, topic,  1)
 
         self.turnoutsui= []
         self.locomotivesui = []
@@ -181,23 +196,43 @@ class NiceGuiNode(Node):
                 turnouts_tab = ui.tab('Turnouts')
             with ui.tab_panels(tabs, value=locomotives_tab).classes('w-full'):
                 with ui.tab_panel(turnouts_tab):
-                    for turnout in turnouts:
-                        tc = turnout_control(turnout, self.control_publisher)
-                        self.turnoutsui.append(tc)
+                    with ui.grid(columns=3):
+                        for turnout in turnouts:
+                            tc = turnout_control(turnout, self.turnout_control_publisher)
+                            self.turnoutsui.append(tc)
                 with ui.tab_panel(locomotives_tab):
-                    for loc in locomotives:
-                        locomotive = locomotive_control(loc)
-                        self.locomotivesui.append(locomotive)
-            self.stop_btn = ui.button('STOP', on_click=lambda: self.stop()).classes('drop-shadow bg-red')
+                    with ui.grid(columns=3):
+                        for loc in locomotives:
+                            locomotive = locomotive_control(loc)
+                            self.locomotivesui.append(locomotive)
+            self.power_button = ui.button('STOP', on_click=lambda:self.power()).classes('drop-shadow bg-red')
     
-    def status_callback(self, status):
-        #print("status_callback")
+    def turnout_status_callback(self, status):
+        #print("turnout_callback")
         for turnout in self.turnoutsui:
             turnout.set_status_indicator(status)
 
-    def stop(self):
+    def locomotive_status_callback(self, power):
+        #print("power_callback")
         pass
 
+    def power_status_callback(self, power):
+        #print("power_callback")
+        pass
+
+    def power(self):
+        #ui.notify(self.power_button.text)
+        msg = Bool()
+        if(self.power_button.text == 'STOP'):
+            self.power_button.classes('drop-shadow bg-green') 
+            self.power_button.text = 'ENABLE'
+            msg.data = False
+        else:
+            self.power_button.classes('drop-shadow bg-red')
+            self.power_button.text = 'STOP'
+            msg.data = True
+        self.power_control_publisher.publish(msg)  
+        pass
 
 def main() -> None:
     # NOTE: This function is defined as the ROS entry point in setup.py, but it's empty to enable NiceGUI auto-reloading
