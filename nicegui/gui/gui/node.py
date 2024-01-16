@@ -18,7 +18,7 @@ from railway_interfaces.msg import LocomotiveState
 from railway_interfaces.msg import TurnoutControl  
 from railway_interfaces.msg import TurnoutState  
 
-turnouts = [1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 16]
+turnouts = [1, 2, 3, 4, 10, 11, 12, 13, 14, 15, 16]
 
 stoomtrein  = {
     "name" : "Stoomtrein",
@@ -194,7 +194,7 @@ class NiceGuiNode(Node):
             with ui.tabs().classes('w-full') as tabs:
                 locomotives_tab = ui.tab('Locomotives')
                 turnouts_tab = ui.tab('Turnouts')
-            with ui.tab_panels(tabs, value=locomotives_tab).classes('w-full'):
+            with ui.tab_panels(tabs, value=turnouts_tab).classes('w-full'):
                 with ui.tab_panel(turnouts_tab):
                     with ui.grid(columns=3):
                         for turnout in turnouts:
@@ -206,7 +206,8 @@ class NiceGuiNode(Node):
                             locomotive = locomotive_control(loc)
                             self.locomotivesui.append(locomotive)
             self.power_button = ui.button('STOP', on_click=lambda:self.power()).classes('drop-shadow bg-red')
-    
+        self.power_state = False
+
     def turnout_status_callback(self, status):
         #print("turnout_callback")
         for turnout in self.turnoutsui:
@@ -217,6 +218,15 @@ class NiceGuiNode(Node):
         pass
 
     def power_status_callback(self, power):
+        if power.data:
+            self.power_state = True
+            self.power_button.classes('drop-shadow bg-red')
+            self.power_button.text = 'STOP'
+        else:
+            self.power_state = False
+            self.power_button.classes('drop-shadow bg-green') 
+            self.power_button.text = 'ENABLE'
+
         #print("power_callback")
         pass
 
@@ -227,10 +237,12 @@ class NiceGuiNode(Node):
             self.power_button.classes('drop-shadow bg-green') 
             self.power_button.text = 'ENABLE'
             msg.data = False
+            self.power_state = False
         else:
             self.power_button.classes('drop-shadow bg-red')
             self.power_button.text = 'STOP'
             msg.data = True
+            self.power_state = True
         self.power_control_publisher.publish(msg)  
         pass
 

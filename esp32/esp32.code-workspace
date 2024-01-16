@@ -14,5 +14,9 @@
 			"path": "tft-test"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"files.associations": {
+			"system_error": "cpp"
+		}
+	}
 }
