@@ -59,9 +59,9 @@ rcl_timer_t power_state_publisher_timer;
 #define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){}}
 
 void error_loop(){
+  Serial.println("Error: System halted");
   while(1){
     digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-    Serial.print("E");
     delay(100);
   }
 }
@@ -259,7 +259,7 @@ void loop() {
   //Serial.print("*");
 #if 1
   if(ctrl->receiveMessage(message)){
-#if 1
+#if 0
     Serial.print("COMMAND: ");
     Serial.print("0x");Serial.println(message.command, HEX);
     Serial.print("DLC: ");
@@ -269,8 +269,15 @@ void loop() {
     for (int i = 0; i < message.length; i++) {
       Serial.print("0x");Serial.print(message.data[i], HEX);Serial.print(" ");
     }
+    Serial.println("");
+    int adress;
+    adress =  (message.data[0] << 24) 
+            + (message.data[1] << 16) 
+            + (message.data[2] << 8) 
+            + message.data[3];
+    Serial.print("Adress (when used): 0x");Serial.println(adress, HEX);
     
-    Serial.println();
+
   #endif
     switch(message.command){
       case SYSTEM_BEFEHL:
@@ -289,17 +296,24 @@ void loop() {
           int adress;
           adress = (message.data[2] << 8) 
                  + message.data[3];
-          Serial.print("Adress: 0x");Serial.println(adress, HEX);
+          //Serial.print("Adress: 0x");Serial.println(adress, HEX);
           position = message.data[4];
-          railway_interfaces__msg__TurnoutControl msg;
 
           int turnout_number;
           turnout_number = adress - TURNOUT_BASE_ADDRESS + 1;
           //Serial.println(turnout_number);
-          msg.number = turnout_number;
-          msg.state = position ? true : false;
 
           // Testen op M-Trach turnout!!!!
+          for(int i = 0; i < NUMBER_OF_ACTIVE_TURNOUTS_M; i++){
+            if(active_turnouts_m[i] == turnout_number){
+              railway_interfaces__msg__TurnoutControl msg;
+              msg.number = turnout_number;
+              msg.state = position ? true : false;
+#if 0
+              RCSOFTCHECK(rcl_publish(&turnout_control_publisher, &msg, NULL));
+#endif
+            }
+          }
 #if 0
           RCSOFTCHECK(rcl_publish(&turnout_control_publisher, &msg, NULL));
           int index;

@@ -46,16 +46,27 @@ void setup() {
 bool once = true;
 
 void loop() {
-  ctrl->receiveMessage(message);
+  if(ctrl->receiveMessage(message)){
+#if 1
+    Serial.print("COMMAND: ");
+    Serial.print("0x");Serial.println(message.command, HEX);
+    Serial.print("DLC: ");
+    Serial.println(message.length, HEX);
+    Serial.print("DATA: ");
 
-  if(once){
-    //ctrl->setTurnout(1, true);
-    //ctrl->setTurnout(2, false);
+    for (int i = 0; i < message.length; i++) {
+      Serial.print("0x");Serial.print(message.data[i], HEX);Serial.print(" ");
+    }
+    Serial.println("");
+    int adress;
+    adress =  (message.data[0] << 24) 
+            + (message.data[1] << 16) 
+            + (message.data[2] << 8) 
+            + message.data[3];
+    Serial.print("Adress (when used): 0x");Serial.println(adress, HEX);
+    
 
-    //ctrl->setPower(false);
-    once = false;
+#endif
   }
-	//Serial.print("*");
-
   delay(20);
 }

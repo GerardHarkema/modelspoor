@@ -226,10 +226,10 @@ void TrackController::begin() {
     // and we just hang. Do not delete!
  
    	pinMode(SS, OUTPUT);
-//#define  MCP1512_INT_PINn 16
+
    	pinMode(MCP1512_INT_PINn,  INPUT);
 	attachInterrupt(digitalPinToInterrupt(MCP1512_INT_PINn), enqueue, FALLING);
-//	attachInterrupt(MCP1512_INT_PINn, enqueue, LOW);
+
 
 		interrupts();// ???
 
