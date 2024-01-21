@@ -1,0 +1,31 @@
+{
+  "Locomotives": [
+    {
+      "name": "Stoomtrein",
+      "type": "Stoomtrein",
+      "image": "stoom_loc.jpg",
+      "protocol": "MFX",
+      "address": 10
+    },
+    {
+      "name": "NS1212",
+      "type": "Electrischetrein",
+      "image": "NS1212.jpg",
+      "protocol": "DCC",
+      "address": 12
+    }
+  ],
+  "Turnouts": [
+    1,
+    2,
+    3,
+    4,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16
+  ]
+}

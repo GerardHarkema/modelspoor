@@ -20,6 +20,33 @@ from railway_interfaces.msg import LocomotiveState
 from railway_interfaces.msg import TurnoutControl  
 from railway_interfaces.msg import TurnoutState  
 
+turnouts = [1, 2, 3, 4, 10, 11, 12, 13, 14, 15, 16]
+
+stoomtrein  = {
+    "name" : "Stoomtrein",
+    "type": "Stoomtrein",
+    "image": "stoom_loc.jpg",
+    "protocol": "MFX",
+    "address": 10
+}
+
+NS121 = {
+    "name" : "NS1212",
+    "type": "Electrischetrein",
+    "image": "NS1212.jpg",
+    "protocol": "DCC",
+    "address": 12
+}
+
+dieseltrein = {
+    "name" : "Dieseltrein",
+    "type": "Dieseltrein",
+    "image": "diesel_loc.jpg",
+    "protocol": "DCC",
+    "address": 13
+}
+
+locomotives =[stoomtrein, NS121, dieseltrein]
 
 class turnout_control(Node):
 
@@ -158,7 +185,7 @@ class locomotive_control(Node):
 
 class NiceGuiNode(Node):
 
-    def __init__(self, config) -> None:
+    def __init__(self) -> None:
         super().__init__('nicegui')
         
         topic_list = self.get_topic_names_and_types()
@@ -199,12 +226,12 @@ class NiceGuiNode(Node):
             with ui.tab_panels(tabs, value=turnouts_tab).classes('w-full'):
                 with ui.tab_panel(turnouts_tab):
                     with ui.grid(columns=3):
-                        for turnout in config['Turnouts']:
+                        for turnout in turnouts:
                             tc = turnout_control(turnout, self.turnout_control_publisher)
                             self.turnoutsui.append(tc)
                 with ui.tab_panel(locomotives_tab):
                     with ui.grid(columns=3):
-                        for loc in config['Locomotives']:
+                        for loc in locomotives:
                             locomotive = locomotive_control(loc, self.locomotive_control_publisher)
                             self.locomotivesui.append(locomotive)
             self.power_button = ui.button('STOP', on_click=lambda:self.power()).classes('drop-shadow bg-red')
@@ -259,13 +286,8 @@ def main() -> None:
 
 
 def ros_main() -> None:
-    #with open('/home/gerard/modelspoor_ws/src/config/track_config.json', 'w', encoding='utf-8') as f:
-    #    json.dump(track_config, f, ensure_ascii=False, indent=2)
-    with open('/home/gerard/modelspoor_ws/src/config/track_config.json', 'r', encoding='utf-8') as f:
-        track_config = json.load(f)
-    #print(track_config)
     rclpy.init()
-    node = NiceGuiNode(track_config)
+    node = NiceGuiNode()
     try:
         rclpy.spin(node)
     except ExternalShutdownException:
