@@ -49,8 +49,6 @@ locomotives =[stoomtrein, NS121, dieseltrein]
 class turnout_control(Node):
 
     def __init__(self, turnout_number, control_publisher):
-        #super().__init__('nicegui')
-
         self.turnout_msg = TurnoutControl()
         self.turnout_msg.number = turnout_number
         self.control_publisher = control_publisher
@@ -63,19 +61,20 @@ class turnout_control(Node):
             with ui.grid(columns=3):
                 self.green_button = ui.button('Green', on_click=lambda: self.set_turnout(True)).classes('drop-shadow bg-green')
                 self.rood_button = ui.button('Red', on_click=lambda: self.set_turnout(False)).classes('drop-shadow bg-red')
-
                 self.led = ui.icon('fiber_manual_record', size='3em').classes('drop-shadow text-green')
 
     def set_turnout(self, control) -> None:
-        
-        msg = TurnoutControl()
-        msg.number = self.turnout_number
-        msg.state = control
-        self.control_publisher.publish(msg)
-
+        self.turnout_msg.state = control
+        self.control_publisher.publish(self.turnout_msg)
+        notify_text = "Set Turnout " + str(self.turnout_msg.number)
+        if(control):
+            notify_text = notify_text + ": Green"
+        else:
+            notify_text = notify_text + ": Red"
+        ui.notify(notify_text)
     def set_status_indicator(self, status) -> None:
         #print("set_status_indicator")
-        if(self.turnout_number == status.number):
+        if(self.turnout_msg.number == status.number):
             if status.state:
                 #print("set green")
                 self.led.classes('text-green', remove='text-red')
@@ -87,13 +86,31 @@ class turnout_control(Node):
 
 class locomotive_control(Node):
 
-    def __init__(self, locomotive_descr):
+    def __init__(self, locomotive_descr, control_publisher):
         #super().__init__('nicegui')
 
+        self.locomotive_descr = locomotive_descr
+        self.control_publisher = control_publisher;
         self.locomotive_msg = LocomotiveControl()
-        self.locomotive_msg.name = locomotive_descr['name']
-        self.locomotive_msg.address = locomotive_descr['address']
-        self.locomotive_msg.protocol = locomotive_descr['protocol']
+        match locomotive_descr['protocol']:
+            case "MM1":
+                self.locomotive_msg.address = locomotive_descr['address']
+                self.number_of_functions = 4
+            case "MM2":
+                self.locomotive_msg.address = locomotive_descr['address']
+                self.number_of_functions = 4
+            case "DCC":
+                self.locomotive_msg.address = locomotive_descr['address'] + 0xC000
+                self.number_of_functions = 16
+            case "MFX":
+                self.locomotive_msg.address = locomotive_descr['address'] + 0x4000
+                self.number_of_functions = 32
+            case _:
+                pass
+
+        #self.locomotive_msg.name = locomotive_descr['name']
+        #self.locomotive_msg.address = locomotive_descr['address']
+        #self.locomotive_msg.protocol = locomotive_descr['protocol']
         with ui.card():
             text = 'Locomotive: ' + str(locomotive_descr['type'])
             ui.label(text)
@@ -103,56 +120,61 @@ class locomotive_control(Node):
 
             ui.image(image).classes('w-64')
             with ui.grid(columns=4):
-                self.reverse = ui.button('Reverse')#, on_click=lambda: self.set_turnout(True)).classes('drop-shadow bg-red')
-                self.forward = ui.button('Forward')#, on_click=lambda: self.set_turnout(False)).classes('drop-shadow bg-green')
-                self.slider = ui.slider(min=0, max=100, value=50)
-                ui.label().bind_text_from(self.slider, 'value')
+                self.direction_button = ui.button('FORWARD', on_click=lambda:self.set_direction()).classes('drop-shadow bg-red')
+                self.speed_slider = ui.slider(min=0, max=1000, value=50, on_change=lambda:self.set_speed())
+                self.speed_slider.on(type = 'update:model-valuex', leading_events = False, trailing_events = False, throttle = 5.0) 
             
             with ui.dialog() as dialog, ui.card():
                 ui.label('Functions')
-                for i in range(10):
-                    text = "F" + str(i)
-                    ui.button(text)
-
+                self.function_buttons = []
+                with ui.grid(columns=4):
+                    for i in range(self.number_of_functions):
+                        text = "F" + str(i)
+                        self.function_buttons.append(ui.button(text, on_click=lambda:self.set_function()))
                 ui.button('Close', on_click=dialog.close)
-
             ui.button('Functions', on_click=dialog.open)
-        
+    
         self.qos_profile = QoSProfile(
             reliability=QoSReliabilityPolicy.BEST_EFFORT,
             history=QoSHistoryPolicy.KEEP_LAST,
             depth=1)
-        
-        #topic = "/locomotive/control"
-        #self.control_publisher = self.create_publisher(LocomotiveControl, topic, 1)
 
+    def set_speed(self):
+        self.locomotive_msg.command = LocomotiveControl().__class__.SET_SPEED
+        self.locomotive_msg.speed = self.speed_slider.value
+        self.control_publisher.publish(self.locomotive_msg)
+        notify_text = "Set Speed, Protocol: " + self.locomotive_descr['protocol'] \
+                    + ", Loc ID: " + str(self.locomotive_descr['address'])         \
+                    + ", Speed: " + str(self.speed_slider.value)
+        ui.notify(notify_text)                 
+        pass
 
-
-'''                
-        topic = "/railtrack/locomotive" + str(self.turnout_number) + "/status"
-        self.loc_status_subscription = self.create_subscription(Bool, topic, self.turnout_callback, qos_profile=self.qos_profile)
-
-    def set_turnout(self, control) -> None:
-        
-        msg = Bool()
-        msg.data = control
-        self.control_publisher.publish(msg)
-        if control:
-            self.led.classes('text-red', remove='text-green')
-            text = 'Set turnout ' + str(self.turnout_number) + ": red" 
+    def set_direction(self):
+        print(self.locomotive_msg)
+        self.locomotive_msg.command = LocomotiveControl().__class__.SET_DIRECTION
+        self.locomotive_msg.speed = 0
+        self.speed_slider.value = 0
+        if(self.direction_button.text == 'FORWARD'):
+            self.direction_button.text ='REVERSE'
+            self.locomotive_msg.direction = LocomotiveControl().__class__.DIRECTION_FORWARD
         else:
-            self.led.classes('text-green', remove='text-red')
-            text = 'Set turnout ' + str(self.turnout_number)+ ": green" 
-        ui.notify(text)
+            self.direction_button.text ='FORWARD'
+            self.locomotive_msg.direction = LocomotiveControl().__class__.DIRECTION_REVERSE
+        self.control_publisher.publish(self.locomotive_msg)
+        notify_text = "Set Direction, Protocol: " + self.locomotive_descr['protocol'] \
+            + ", Loc ID: " + str(self.locomotive_descr['address'])         \
+            + ", Direction: " + self.direction_button.text
+        ui.notify(notify_text)
+        pass
 
-    def turnout_callback(self, msg: Bool) -> None:
-        if msg.data:
-            self.text.set_text("Rood" )
-            self.led.classes('text-green', remove='text-red')
-        else:
-            self.text.set_text("Groen" )
-            self.led.classes('text-red', remove='text-green')    
-'''
+    def set_function(self):
+        ui.notify("Set Function")
+        pass
+
+    def set_status(self, status) -> None:
+        #print("set_status_indicator")
+        if(self.locomotive_msg.address == status.address):
+            pass
 
 class NiceGuiNode(Node):
 
@@ -203,19 +225,18 @@ class NiceGuiNode(Node):
                 with ui.tab_panel(locomotives_tab):
                     with ui.grid(columns=3):
                         for loc in locomotives:
-                            locomotive = locomotive_control(loc)
+                            locomotive = locomotive_control(loc, self.locomotive_control_publisher)
                             self.locomotivesui.append(locomotive)
             self.power_button = ui.button('STOP', on_click=lambda:self.power()).classes('drop-shadow bg-red')
         self.power_state = False
 
     def turnout_status_callback(self, status):
-        #print("turnout_callback")
         for turnout in self.turnoutsui:
             turnout.set_status_indicator(status)
 
-    def locomotive_status_callback(self, power):
-        #print("power_callback")
-        pass
+    def locomotive_status_callback(self, status):
+        for loc in self.locomotivesui:
+            loc.set_status(status)
 
     def power_status_callback(self, power):
         if power.data:
@@ -244,6 +265,12 @@ class NiceGuiNode(Node):
             msg.data = True
             self.power_state = True
         self.power_control_publisher.publish(msg)  
+        notify_text = "Power "
+        if(self.power_state):
+            notify_text = notify_text + ": Enable"
+        else:
+            notify_text = notify_text + ": Disable"
+        ui.notify(notify_text)
         pass
 
 def main() -> None:

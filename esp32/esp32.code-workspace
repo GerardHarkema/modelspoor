@@ -10,8 +10,7 @@
 			"path": "ros2_turnout_controller"
 		},
 		{
-			"name": "tft-test",
-			"path": "tft-test"
+			"path": "DisplayTest"
 		}
 	],
 	"settings": {

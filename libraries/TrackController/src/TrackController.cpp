@@ -74,14 +74,14 @@ volatile boolean lastOpWasWrite = false;
 void IRAM_ATTR enqueue() {
 	//Serial.println("!");
 	if (posWrite == posRead && lastOpWasWrite) {
-		//Serial.println("!!! Buffer full");
+		Serial.println("!!! Buffer full");
 		return;
 	}
 
 	if (can_get_message(&_buffer[posWrite])) {
 		posWrite = (posWrite + 1) % SIZE;
 	} else {
-		//Serial.println("!!! No message");
+		Serial.println("!!! No message");
 	}
 
 	lastOpWasWrite = true;
@@ -96,6 +96,11 @@ boolean dequeue(can_t *p) {
 	}
 
 	memcpy(p, &_buffer[posRead], sizeof(can_t));
+
+	for(int i = 0; i < 8; i++){
+		Serial.print(" 0x"); Serial.print(p->data[i], HEX);
+	}
+	Serial.println("");
 /*
 	p->id=_buffer[posRead].id;
 	p->length=_buffer[posRead].length;
@@ -144,6 +149,7 @@ size_t TrackMessage::printTo(Print& p) const {
 
     return size;
 }
+#if 0
 
 boolean TrackMessage::parseFrom(String &s) {
 	boolean result = true;
@@ -153,6 +159,8 @@ boolean TrackMessage::parseFrom(String &s) {
 	if (s.length() < 11) {
 		return false;
 	}
+
+	Serial.println(s);
 
 	hash = parseHex(s, 0, 4, &result);
 	response = s.charAt(5) != ' ';
@@ -173,7 +181,7 @@ boolean TrackMessage::parseFrom(String &s) {
 
 	return result;
 }
-
+#endif
 // ===================================================================
 // === TrackController ===============================================
 // ===================================================================

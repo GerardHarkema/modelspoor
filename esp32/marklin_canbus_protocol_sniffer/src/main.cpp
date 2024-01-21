@@ -25,6 +25,7 @@ TrackMessage message;
 void setup() {
   Serial.begin(115200);
   while (!Serial);
+  delay(2000);
 #if 0
   Serial.print("MOSI: ");Serial.println(MOSI);
   Serial.print("MISO: ");Serial.println(MISO);
@@ -48,6 +49,7 @@ bool once = true;
 void loop() {
   if(ctrl->receiveMessage(message)){
 #if 1
+
     Serial.print("COMMAND: ");
     Serial.print("0x");Serial.println(message.command, HEX);
     Serial.print("DLC: ");
@@ -65,8 +67,39 @@ void loop() {
             + message.data[3];
     Serial.print("Adress (when used): 0x");Serial.println(adress, HEX);
     
-
-#endif
   }
+#endif
   delay(20);
+
+  if (Serial.available()){
+    int menuChoice = Serial.parseInt();
+    switch (menuChoice) {
+      case 1:
+        ctrl->setPower(false);
+        //TrackPower = false;
+        break;
+      case 2:
+        ctrl->setPower(true);
+        //TrackPower = true;
+        break;
+      case 3:
+        word speed;;
+        ctrl->getLocoSpeed(0xc003, &speed);// Position Rood = 0, Groen = 1
+        Serial.println(speed);
+        //Serial.println(power);
+        break;
+      case 4:
+        ctrl->setLocoSpeed(0xc003, 50);// Position Rood = 0, Groen = 1
+        break;
+      case 5:
+        ctrl->setLocoSpeed(0xc003, 0);// Position Rood = 0, Groen = 1
+        break;
+      case 6:
+        ctrl->setLocoDirection(0xc003, 1);// Position Rood = 0, Groen = 1
+        break;  
+      case 7:
+        ctrl->setLocoDirection(0xc003, 2);// Position Rood = 0, Groen = 1
+        break;  
+    }
+  }
 }

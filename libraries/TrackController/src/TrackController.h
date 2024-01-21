@@ -121,7 +121,10 @@
 #define TURNOUT_BASE_ADDRESS    0x3000
 #define TURNOUT_END_ADDRESS     0x3fff
 
-
+#define NUMBER_OF_MM1_FUNCTIONS         4
+#define NUMBER_OF_MM2_FUNCTIONS         4
+#define NUMBER_OF_DCC_FUNCTIONS         16
+#define NUMBER_OF_MFX_FUNCTIONS         32
 
 /**
  * Represents a message going through the Marklin CAN bus. More or
