@@ -6,7 +6,6 @@
 #define SSID          "BirdsModelspoor"
 #define PASSWORD      "Highway12!"
 IPAddress agent_ip(192, 168, 2, 150);
-
 #define AGENT_PORT      8888
 
 unsigned short int active_turnouts_c[] = {1,2,3,4,5,6,7}; // C-rail active turnouts

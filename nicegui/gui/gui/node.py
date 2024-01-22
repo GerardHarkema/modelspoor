@@ -11,8 +11,9 @@ from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
 
 from nicegui import Client, app, ui, ui_run
-from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
+from functools import partial
 
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 
 from std_msgs.msg import Bool;
 from railway_interfaces.msg import LocomotiveControl  
@@ -101,19 +102,12 @@ class locomotive_control(Node):
             
             with ui.dialog() as dialog, ui.card():
                 ui.label('Functions')
-                self.function_buttons = []
                 with ui.grid(columns=4):
-                    for i in range(self.number_of_functions):
-                        text = "F" + str(i+1) + " "
+                    set_functions = [partial(self.set_function, i) for i in range(self.number_of_functions)]
+                    for i, f in enumerate(set_functions): 
+                        text = "F" + str(i+1) + " " 
+                        button = ui.button(text, icon = 'home', on_click=f)             
                         # see icons https://fonts.google.com/icons
-                        button = ui.button(text, icon = 'home', on_click=lambda:self.set_function(i))
-                        #with button:
-                            #ui.label(text)
-                            #ui.icon('thumb_up')
-                        #self.function_buttons.append(ui.button(text, on_click=lambda:self.set_function(i)))
-                        #button = ui.button(text, on_click=lambda:self.set_function(i))
-                        self.function_buttons.append(button)
-                        button = 0
                 ui.button('Close', on_click=dialog.close)
             ui.button('Functions', on_click=dialog.open)
     
@@ -199,7 +193,9 @@ class NiceGuiNode(Node):
             with ui.tab_panels(tabs, value=turnouts_tab).classes('w-full'):
                 with ui.tab_panel(turnouts_tab):
                     with ui.grid(columns=3):
-                        for turnout in config['Turnouts']:
+                        turnouts = config["Turnouts"]["c-type"] + config["Turnouts"]["m-type"]
+                        turnouts.sort()
+                        for turnout in turnouts:
                             tc = turnout_control(turnout, self.turnout_control_publisher)
                             self.turnoutsui.append(tc)
                 with ui.tab_panel(locomotives_tab):

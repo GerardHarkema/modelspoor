@@ -15,7 +15,7 @@
 #include <railway_interfaces/msg/locomotive_control.h>
 #include <railway_interfaces/msg/locomotive_state.h>
 
-#include "rail_track_def.h"
+//#include "rail_track_def.h"
 
 #if !defined(ESP32) && !defined(TARGET_PORTENTA_H7_M7) && !defined(ARDUINO_NANO_RP2040_CONNECT) && !defined(ARDUINO_WIO_TERMINAL)
 #error This application is only avaible for Arduino Portenta, Arduino Nano RP2040 Connect, ESP32 Dev module and Wio Terminal
@@ -47,7 +47,18 @@ railway_interfaces__msg__TurnoutControl turnout_control;
 railway_interfaces__msg__LocomotiveControl locomotive_control;
 std_msgs__msg__Bool power_control;
 
-//bool turnout_status[NUMBER_OF_ACTIVE_TURNOUTS_C] = {false};
+typedef enum{
+    MM1, MM2, DCC, MFX
+}PROTOCOL;
+
+typedef struct{
+    unsigned int id;
+    PROTOCOL protocol;
+    unsigned int address;
+}LOCOMOTIVE;
+
+#include "track_config.h"
+
 railway_interfaces__msg__TurnoutState turnout_status [NUMBER_OF_ACTIVE_TURNOUTS_C] = {0};
 railway_interfaces__msg__LocomotiveState locomotive_status[NUMBER_OF_ACTIVE_LOCOMOTIVES] = {0};
 
@@ -60,6 +71,12 @@ rcl_timer_t locomotive_state_publisher_timer;
 rcl_timer_t power_state_publisher_timer;
 #define RCCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){error_loop();}}
 #define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){}}
+
+
+#define SSID          "BirdsModelspoor"
+#define PASSWORD      "Highway12!"
+IPAddress agent_ip(192, 168, 2, 150);
+#define AGENT_PORT      8888
 
 void error_loop(){
   Serial.println("Error: System halted");
