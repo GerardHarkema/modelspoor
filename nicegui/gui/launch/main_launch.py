@@ -8,26 +8,18 @@ import os
 
 def generate_launch_description():
 
-    default_rviz = os.path.join(get_package_share_directory('gui'),
-                                'rviz', 'spatialDetections.rviz')
+    # dit moet nog anders referentio t.o.v. package
+    config_file = '/home/gerard/modelspoor_ws/src/config/track_config.json'
+    locomotive_images_path = '/home/gerard/modelspoor_ws/src/config/locomotive_images'
 
-    print(default_rviz)
-    print("hallo")
-
-    nnName = LaunchConfiguration('nnName', default = "SimpleFruitsv1iyolov5pytorch_openvino_2021.4_6shave.blob")
-
-    declare_nnName_cmd = DeclareLaunchArgument(
-        'nnName',
-        default_value=nnName,
-        description='Path to the object detection blob needed for detection')
-    
     return LaunchDescription([
         Node(
             package='gui',
             executable='nicegui_node',
             name='example_gui',
             output='screen',
-            parameters=[{'nnName': nnName},
-                        {"hoi", "hoi"}],
+            parameters=[{'config_file': config_file},
+                        {"locomotive_images_path": locomotive_images_path}
+                        ],
         ),
     ])

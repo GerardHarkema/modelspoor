@@ -62,7 +62,7 @@ class turnout_control(Node):
 
 class locomotive_control(Node):
 
-    def __init__(self, locomotive_descr, control_publisher):
+    def __init__(self, locomotive_descr, control_publisher, locomotive_images_path):
         #super().__init__('nicegui')
 
         self.locomotive_descr = locomotive_descr
@@ -90,7 +90,8 @@ class locomotive_control(Node):
         with ui.card():
             text = 'Locomotive: ' + str(locomotive_descr['type'])
             ui.label(text)
-            image = "/home/gerard/modelspoor_ws/src/nicegui/gui/gui/locomotive_images/"+ locomotive_descr["image"]
+            image = locomotive_images_path + "/" + locomotive_descr["image"]
+            print(image)
             #image = os.getcwd() + "/"+ locomotive_descr["image"]
             #ui.label(os.getcwd())
 
@@ -152,14 +153,16 @@ class locomotive_control(Node):
 
 class NiceGuiNode(Node):
 
-    def __init__(self, config) -> None:
+    def __init__(self) -> None:
         super().__init__('nicegui')
         
-        topic_list = self.get_topic_names_and_types()
-        #for topic in topic_list:
-        #    print(topic[0])
+        self.declare_parameter("config_file", "");
+        self.config_file = self.get_parameter("config_file").get_parameter_value().string_value
+        self.declare_parameter("locomotive_images_path", "");
+        self.locomotive_images_path = self.get_parameter("locomotive_images_path").get_parameter_value().string_value
 
-        self.get_logger().debug(topic_list)
+        with open(self.config_file, 'r', encoding='utf-8') as f:
+            self.track_config = json.load(f)
 
         self.qos_profile = QoSProfile(
             reliability=QoSReliabilityPolicy.BEST_EFFORT,
@@ -193,15 +196,15 @@ class NiceGuiNode(Node):
             with ui.tab_panels(tabs, value=turnouts_tab).classes('w-full'):
                 with ui.tab_panel(turnouts_tab):
                     with ui.grid(columns=3):
-                        turnouts = config["Turnouts"]["c-type"] + config["Turnouts"]["m-type"]
+                        turnouts = self.track_config["Turnouts"]["c-type"] + self.track_config["Turnouts"]["m-type"]
                         turnouts.sort()
                         for turnout in turnouts:
                             tc = turnout_control(turnout, self.turnout_control_publisher)
                             self.turnoutsui.append(tc)
                 with ui.tab_panel(locomotives_tab):
                     with ui.grid(columns=3):
-                        for loc in config['Locomotives']:
-                            locomotive = locomotive_control(loc, self.locomotive_control_publisher)
+                        for loc in self.track_config['Locomotives']:
+                            locomotive = locomotive_control(loc, self.locomotive_control_publisher, self.locomotive_images_path)
                             self.locomotivesui.append(locomotive)
             self.power_button = ui.button('STOP', on_click=lambda:self.power()).classes('drop-shadow bg-red')
         self.power_state = False
@@ -257,11 +260,12 @@ def main() -> None:
 def ros_main() -> None:
     #with open('/home/gerard/modelspoor_ws/src/config/track_config.json', 'w', encoding='utf-8') as f:
     #    json.dump(track_config, f, ensure_ascii=False, indent=2)
-    with open('/home/gerard/modelspoor_ws/src/config/track_config.json', 'r', encoding='utf-8') as f:
-        track_config = json.load(f)
+    #with open('/home/gerard/modelspoor_ws/src/config/track_config.json', 'r', encoding='utf-8') as f:
+    #    track_config = json.load(f)
     #print(track_config)
     rclpy.init()
-    node = NiceGuiNode(track_config)
+
+    node = NiceGuiNode()
     try:
         rclpy.spin(node)
     except ExternalShutdownException:
