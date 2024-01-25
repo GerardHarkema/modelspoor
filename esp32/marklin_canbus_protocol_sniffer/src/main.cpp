@@ -69,7 +69,8 @@ void loop() {
     
   }
 #endif
-  delay(20);
+vTaskDelay(20);
+  //delay(20);
 
   if (Serial.available()){
     int menuChoice = Serial.parseInt();

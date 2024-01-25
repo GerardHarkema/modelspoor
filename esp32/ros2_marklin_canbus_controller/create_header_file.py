@@ -20,7 +20,7 @@ line = "#define _TRACK_CONFIG_\n"
 header = header + line + "\n"
 
 locomotives = track_config["Locomotives"]
-print(locomotives)
+#print(locomotives)
 
 line = "LOCOMOTIVE active_locomotives[] = {"
 for i in range(len(locomotives) - 1):

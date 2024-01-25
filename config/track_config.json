@@ -5,14 +5,14 @@
       "type": "Stoomtrein",
       "image": "stoom_loc.jpg",
       "protocol": "MFX",
-      "address": 10
+      "address": 5
     },
     {
       "name": "NS1212",
       "type": "Electrischetrein",
       "image": "NS1212.jpg",
       "protocol": "DCC",
-      "address": 12
+      "address": 3
     }
   ],
   "Turnouts": {

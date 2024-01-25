@@ -72,8 +72,12 @@ rcl_timer_t power_state_publisher_timer;
 #define RCCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){error_loop();}}
 #define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){}}
 
-
+#if 0
 #define SSID          "BirdsModelspoor"
+#else
+#define SSID          "BirdsBoven"
+#endif
+
 #define PASSWORD      "Highway12!"
 IPAddress agent_ip(192, 168, 2, 150);
 #define AGENT_PORT      8888
@@ -129,26 +133,33 @@ int locomotive_state_index = 0;
 void locomotive_state_publisher_timer_callback(rcl_timer_t * timer, int64_t last_call_time) {
   RCLC_UNUSED(last_call_time);
   if (timer != NULL) {
+#if 0
     RCSOFTCHECK(rcl_publish(&locomoitive_status_publisher, &locomotive_status[locomotive_state_index], NULL));
     locomotive_state_index++;
     if(locomotive_state_index == NUMBER_OF_ACTIVE_LOCOMOTIVES) turnout_state_index = 0;
+#endif
   }
 }
 
 void power_state_publisher_timer_callback(rcl_timer_t * timer, int64_t last_call_time) {
   RCLC_UNUSED(last_call_time);
   if (timer != NULL) {
+#if 1
     std_msgs__msg__Bool power_msg;
     power_msg.data = TrackPower;
     RCSOFTCHECK(rcl_publish(&power_status_publisher, &power_msg, NULL));
+#endif
   }
+
 }
 
 void turnout_control_callback(const void * msgin)
 {  
   const railway_interfaces__msg__TurnoutControl * control = (const railway_interfaces__msg__TurnoutControl *)msgin;
   int index;
+#if 1
   boolean straight = control->state ? true : false;
+  //Serial.println("turnout_control_callback");
   // update controller always !!!
   if(TrackPower){
     ctrl->setTurnout(TURNOUT_BASE_ADDRESS + control->number - 1, straight);
@@ -156,6 +167,7 @@ void turnout_control_callback(const void * msgin)
       turnout_status[index].state = straight;
     }
   }
+#endif
 //  else Serial.println("Invalid Turnout");
 }
 
@@ -167,22 +179,29 @@ void locomotive_control_callback(const void * msgin)
 
   switch(control->command){
     case railway_interfaces__msg__LocomotiveControl__SET_SPEED:
+      Serial.print("Address: "); Serial.println(control->address, HEX);
+      Serial.print("Speed: "); Serial.println(control->speed);
       ctrl->setLocoSpeed(control->address, control->speed);
       if(lookupLocomotiveIndex(control->address, &locomotive_index)){
+        Serial.print("Index: "); Serial.println(locomotive_index);
         locomotive_status[locomotive_index].speed = control->speed;
       }
       break;
     case railway_interfaces__msg__LocomotiveControl__SET_DIRECTION:
+      Serial.print("Address: "); Serial.println(control->address, HEX);
+      Serial.print("Direction: "); Serial.println(control->direction);
       ctrl->setLocoDirection(control->address, control->direction);
       if(lookupLocomotiveIndex(control->address, &locomotive_index)){
         locomotive_status[locomotive_index].direction = control->direction;
       }
       break;
     case railway_interfaces__msg__LocomotiveControl__SET_FUNCTION:
+#if 0
       ctrl->setLocoFunction(control->address, control->function_index, control->function_state);
       if(lookupLocomotiveIndex(control->address, &locomotive_index)){
         locomotive_status[locomotive_index].function.data.data[control->function_index] = control->function_state;
-      }
+     }
+#endif
       break;
     default:
       Serial.println("Invalid command");
@@ -192,7 +211,7 @@ void locomotive_control_callback(const void * msgin)
 void power_control_callback(const void * msgin)
 {  
   const std_msgs__msg__Bool * control = (const std_msgs__msg__Bool *)msgin;
-  Serial.println("power_control_callback");
+  //Serial.println("power_control_callback");
   ctrl->setPower(control->data);
   TrackPower = control->data;
 //  else Serial.println("Invalid Turnout");
@@ -220,29 +239,28 @@ void setup() {
 
   for(int i = 0; i < NUMBER_OF_ACTIVE_LOCOMOTIVES; i++){
     locomotive_status[i].direction = railway_interfaces__msg__LocomotiveState__DIRECTION_FORWARD;
-    switch(active_locomotives->protocol){
+    switch(active_locomotives[i].protocol){
       case MM1:
       case MM2:
-        locomotive_status[i].address = active_locomotives->id;
-        locomotive_status[i].function.data.size = NUMBER_OF_MM1_FUNCTIONS;      
+        locomotive_status[i].address = active_locomotives[i].id;
+        //locomotive_status[i].function.data.size = NUMBER_OF_MM1_FUNCTIONS;      
         break;
       case DCC:
-        locomotive_status[i].address = active_locomotives->id + ADDR_DCC;
-        locomotive_status[i].function.data.size = NUMBER_OF_DCC_FUNCTIONS;      
+        locomotive_status[i].address = active_locomotives[i].id + ADDR_DCC;
+        //locomotive_status[i].function.data.size = NUMBER_OF_DCC_FUNCTIONS;      
       break;
       case MFX:
-        locomotive_status[i].address = active_locomotives->id + ADDR_MFX;
-        locomotive_status[i].function.data.size = NUMBER_OF_MFX_FUNCTIONS;      
+        locomotive_status[i].address = active_locomotives[i].id + ADDR_MFX;
+        //locomotive_status[i].function.data.size = NUMBER_OF_MFX_FUNCTIONS;      
       break;
 
     }
-  
+#if 0
       for(int j = 0; j < locomotive_status[i].function.data.size; j++){
-        locomotive_status[i].function.data.data[j] = false;
+        //locomotive_status[i].function.data.data[j] = false;
       }
+#endif
   }
-
-
   set_microros_wifi_transports(SSID, PASSWORD, agent_ip, (size_t)AGENT_PORT);
 
   pinMode(LED_BUILTIN, OUTPUT);
@@ -265,6 +283,7 @@ void setup() {
     &node,
     ROSIDL_GET_MSG_TYPE_SUPPORT(railway_interfaces, msg, TurnoutState),
     topic_name));
+
   
   // create turnout_control_subscriber
   sprintf(topic_name, "railtrack/turnout/control");
@@ -314,39 +333,43 @@ void setup() {
     &node,
     ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Bool),
     topic_name));
-
   // create timer,
-#define CYCLE_TIME    200
+#define CYCLE_TIME    1000
   unsigned int timer_timeout = CYCLE_TIME / NUMBER_OF_ACTIVE_TURNOUTS_C;
   RCCHECK(rclc_timer_init_default(
     &turnout_state_publisher_timer,
     &support,
-    RCL_MS_TO_NS(timer_timeout),
+    RCL_MS_TO_NS((int)timer_timeout),
     turnout_state_publisher_timer_callback));
 
   timer_timeout = CYCLE_TIME / NUMBER_OF_ACTIVE_LOCOMOTIVES;
   RCCHECK(rclc_timer_init_default(
     &locomotive_state_publisher_timer,
     &support,
-    RCL_MS_TO_NS(timer_timeout),
+    RCL_MS_TO_NS((int)timer_timeout),
     locomotive_state_publisher_timer_callback));
 
   timer_timeout = CYCLE_TIME;
   RCCHECK(rclc_timer_init_default(
     &power_state_publisher_timer,
     &support,
-    RCL_MS_TO_NS(timer_timeout),
+    RCL_MS_TO_NS((int)timer_timeout),
     power_state_publisher_timer_callback));
+
 
   // create executor
   int number_of_executors = 6;
   
   RCCHECK(rclc_executor_init(&executor, &support.context, number_of_executors, &allocator));
+
   RCCHECK(rclc_executor_add_timer(&executor, &turnout_state_publisher_timer));
-  RCCHECK(rclc_executor_add_timer(&executor, &locomotive_state_publisher_timer));
-  RCCHECK(rclc_executor_add_timer(&executor, &power_state_publisher_timer));
   RCCHECK(rclc_executor_add_subscription(&executor, &turnout_control_subscriber, &turnout_control, &turnout_control_callback, ON_NEW_DATA));
+
+  RCCHECK(rclc_executor_add_timer(&executor, &locomotive_state_publisher_timer));
   RCCHECK(rclc_executor_add_subscription(&executor, &locomotive_control_subscriber, &locomotive_control, &locomotive_control_callback, ON_NEW_DATA));
+
+  //delay(25);
+  RCCHECK(rclc_executor_add_timer(&executor, &power_state_publisher_timer));
   RCCHECK(rclc_executor_add_subscription(&executor, &power_control_subscriber, &power_control, &power_control_callback, ON_NEW_DATA));
 
   Serial.println("!!! Ready for operating !!!");
@@ -401,7 +424,7 @@ void loop() {
           turnout_number = adress - TURNOUT_BASE_ADDRESS + 1;
           //Serial.println(turnout_number);
 
-          // Testen op M-Trach turnout!!!!
+          // Testen op M-Track turnout!!!!
           for(int i = 0; i < NUMBER_OF_ACTIVE_TURNOUTS_M; i++){
             if(active_turnouts_m[i] == turnout_number){
               railway_interfaces__msg__TurnoutControl msg;
@@ -425,7 +448,9 @@ void loop() {
         break;    }
   }
 #endif
-  delay(20);
-
+  vTaskDelay(20);
+  //delay(20);
+#if 1
   RCSOFTCHECK(rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100)));
+#endif
 }

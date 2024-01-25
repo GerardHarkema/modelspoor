@@ -87,8 +87,20 @@ void IRAM_ATTR enqueue() {
 	lastOpWasWrite = true;
 }
 
+void enqueue_task(void *pvParameter)
+{
+	while(1)
+	{
+	    if(digitalRead(MCP1512_INT_PINn) == 0){
+			enqueue();
+		}
+		taskYIELD();
+	}
+}
+
+
 boolean dequeue(can_t *p) {
-	noInterrupts();
+	//noInterrupts();
 
 	if (posWrite == posRead && !lastOpWasWrite) {
 		interrupts();
@@ -96,11 +108,12 @@ boolean dequeue(can_t *p) {
 	}
 
 	memcpy(p, &_buffer[posRead], sizeof(can_t));
-
+#if 0
 	for(int i = 0; i < 8; i++){
 		Serial.print(" 0x"); Serial.print(p->data[i], HEX);
 	}
 	Serial.println("");
+#endif
 /*
 	p->id=_buffer[posRead].id;
 	p->length=_buffer[posRead].length;
@@ -114,7 +127,7 @@ boolean dequeue(can_t *p) {
 	posRead = (posRead + 1) % SIZE;
 	lastOpWasWrite = false;
 
-	interrupts();
+	//interrupts();
 
 	return true;
 }
@@ -236,8 +249,18 @@ void TrackController::begin() {
    	pinMode(SS, OUTPUT);
 
    	pinMode(MCP1512_INT_PINn,  INPUT);
-	attachInterrupt(digitalPinToInterrupt(MCP1512_INT_PINn), enqueue, FALLING);
+	//attachInterrupt(digitalPinToInterrupt(MCP1512_INT_PINn), enqueue, FALLING);
 
+
+    int app_cpu = xPortGetCoreID();
+
+    xTaskCreatePinnedToCore(enqueue_task,
+                            "enqueue_task", 
+                            1024,
+                            NULL,
+                            1,
+                            &enqueue_task_h,
+                            app_cpu);
 
 		interrupts();// ???
 

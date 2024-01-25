@@ -7,5 +7,5 @@ int8 FUNCTION_STATE_TRUE = 1
 int32 address
 int16 speed
 int8 direction
-std_msgs/Int8MultiArray function
+#std_msgs/Int8MultiArray function
 

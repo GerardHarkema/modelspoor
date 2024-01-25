@@ -231,6 +231,9 @@ class TrackController {
 	 */
 	boolean mLoopback;
 
+    TaskHandle_t enqueue_task_h;
+
+
 	/**
 	 * Generates a new hash and makes sure it does not conflict
 	 * with those of other devices in the setup.

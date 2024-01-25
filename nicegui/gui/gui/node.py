@@ -100,7 +100,8 @@ class locomotive_control(Node):
                 self.direction_button = ui.button('FORWARD', on_click=lambda:self.set_direction()).classes('drop-shadow bg-red')
                 self.speed_slider = ui.slider(min=0, max=1000, value=50, on_change=lambda:self.set_speed())
                 self.speed_slider.on(type = 'update:model-valuex', leading_events = False, trailing_events = False, throttle = 5.0) 
-            
+                self.stop_button = ui.button('STOP', on_click=lambda:self.stop())
+
             with ui.dialog() as dialog, ui.card():
                 ui.label('Functions')
                 with ui.grid(columns=4):
@@ -127,7 +128,10 @@ class locomotive_control(Node):
         print(self.locomotive_msg)
         self.locomotive_msg.command = LocomotiveControl().__class__.SET_DIRECTION
         self.locomotive_msg.speed = 0
+        #disable events
+        self.speed_slider.disable();
         self.speed_slider.value = 0
+        self.speed_slider.enable();
         if(self.direction_button.text == 'FORWARD'):
             self.direction_button.text ='REVERSE'
             self.locomotive_msg.direction = LocomotiveControl().__class__.DIRECTION_FORWARD
@@ -139,6 +143,10 @@ class locomotive_control(Node):
             + ", Loc ID: " + str(self.locomotive_descr['address'])         \
             + ", Direction: " + self.direction_button.text
         ui.notify(notify_text)
+        pass
+
+    def stop(self):
+        self.speed_slider.value = 0
         pass
 
     def set_function(self, function_index):
