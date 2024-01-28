@@ -83,6 +83,10 @@ class locomotive_control(Node):
                 self.number_of_functions = 32
             case _:
                 pass
+        self.speed = 0
+        self.max_speed = 1000;
+        self.increment_speed = 100
+        self.decrement_speed = 100
 
         #self.locomotive_msg.name = locomotive_descr['name']
         #self.locomotive_msg.address = locomotive_descr['address']
@@ -96,23 +100,26 @@ class locomotive_control(Node):
             #ui.label(os.getcwd())
 
             ui.image(image).classes('w-64')
-            with ui.grid(columns=4):
-                self.direction_button = ui.button('FORWARD', on_click=lambda:self.set_direction()).classes('drop-shadow bg-red')
+            with ui.grid(columns=3):
+                self.decrement_button = ui.button(icon = 'remove', on_click=lambda:self.set_decrement_speed()) 
                 self.speed_slider = ui.slider(min=0, max=1000, value=50, on_change=lambda:self.set_speed())
                 self.speed_slider.on(type = 'update:model-valuex', leading_events = False, trailing_events = False, throttle = 5.0) 
+                self.increment_button = ui.button(icon = 'add', on_click=lambda:self.set_increment_speed()) 
+                self.direction_button = ui.button('FORWARD', on_click=lambda:self.set_direction()).classes('drop-shadow bg-red')
                 self.stop_button = ui.button('STOP', on_click=lambda:self.stop())
 
-            with ui.dialog() as dialog, ui.card():
-                ui.label('Functions')
-                with ui.grid(columns=4):
-                    set_functions = [partial(self.set_function, i) for i in range(self.number_of_functions)]
-                    for i, f in enumerate(set_functions): 
-                        text = "F" + str(i+1) + " " 
-                        button = ui.button(text, icon = 'home', on_click=f)             
-                        # see icons https://fonts.google.com/icons
-                ui.button('Close', on_click=dialog.close)
-            ui.button('Functions', on_click=dialog.open)
+                with ui.dialog() as dialog, ui.card():
+                    ui.label('Functions')
+                    with ui.grid(columns=4):
+                        set_functions = [partial(self.set_function, i) for i in range(self.number_of_functions)]
+                        for i, f in enumerate(set_functions): 
+                            text = "F" + str(i+1) + " " 
+                            button = ui.button(text, icon = 'home', on_click=f)             
+                            # see icons https://fonts.google.com/icons
+                    ui.button('Close', on_click=dialog.close)
+                ui.button('Functions', on_click=dialog.open)
     
+
     
     def set_speed(self):
         self.locomotive_msg.command = LocomotiveControl().__class__.SET_SPEED
@@ -122,6 +129,22 @@ class locomotive_control(Node):
                     + ", Loc ID: " + str(self.locomotive_descr['address'])         \
                     + ", Speed: " + str(self.speed_slider.value)
         ui.notify(notify_text)                 
+        pass
+
+    def set_increment_speed(self):
+        new_speed = self.speed + self.increment_speed
+        if new_speed > self.max_speed:
+            new_speed = self.max_speed
+        self.speed = new_speed
+        self.speed_slider.value = self.speed  
+        pass
+
+    def set_decrement_speed(self):
+        new_speed = self.speed - self.decrement_speed
+        if new_speed < 0:
+            new_speed = 0
+        self.speed = new_speed
+        self.speed_slider.value = self.speed          
         pass
 
     def set_direction(self):
@@ -146,7 +169,8 @@ class locomotive_control(Node):
         pass
 
     def stop(self):
-        self.speed_slider.value = 0
+        self.speed = 0
+        self.speed_slider.value = self.speed
         pass
 
     def set_function(self, function_index):
@@ -215,6 +239,9 @@ class NiceGuiNode(Node):
                             locomotive = locomotive_control(loc, self.locomotive_control_publisher, self.locomotive_images_path)
                             self.locomotivesui.append(locomotive)
             self.power_button = ui.button('STOP', on_click=lambda:self.power()).classes('drop-shadow bg-red')
+            self.active = ui.icon('fiber_manual_record', size='3em').classes('drop-shadow text-green')
+            self.active_status = False;
+
         self.power_state = False
 
     def turnout_status_callback(self, status):
@@ -234,6 +261,13 @@ class NiceGuiNode(Node):
             self.power_state = False
             self.power_button.classes('drop-shadow bg-green') 
             self.power_button.text = 'ENABLE'
+        if(self.active_status):
+            self.active.classes('text-green', remove='text-red')
+            self.active_status = False
+        else:
+            self.active.classes('text-red', remove='text-green')
+            self.active_status = True
+
 
         #print("power_callback")
         pass

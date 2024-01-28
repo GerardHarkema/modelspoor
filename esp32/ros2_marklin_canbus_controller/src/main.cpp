@@ -133,7 +133,7 @@ int locomotive_state_index = 0;
 void locomotive_state_publisher_timer_callback(rcl_timer_t * timer, int64_t last_call_time) {
   RCLC_UNUSED(last_call_time);
   if (timer != NULL) {
-#if 0
+#if 1
     RCSOFTCHECK(rcl_publish(&locomoitive_status_publisher, &locomotive_status[locomotive_state_index], NULL));
     locomotive_state_index++;
     if(locomotive_state_index == NUMBER_OF_ACTIVE_LOCOMOTIVES) turnout_state_index = 0;
@@ -179,17 +179,17 @@ void locomotive_control_callback(const void * msgin)
 
   switch(control->command){
     case railway_interfaces__msg__LocomotiveControl__SET_SPEED:
-      Serial.print("Address: "); Serial.println(control->address, HEX);
-      Serial.print("Speed: "); Serial.println(control->speed);
+      //Serial.print("Address: "); Serial.println(control->address, HEX);
+      //Serial.print("Speed: "); Serial.println(control->speed);
       ctrl->setLocoSpeed(control->address, control->speed);
       if(lookupLocomotiveIndex(control->address, &locomotive_index)){
-        Serial.print("Index: "); Serial.println(locomotive_index);
+        //Serial.print("Index: "); Serial.println(locomotive_index);
         locomotive_status[locomotive_index].speed = control->speed;
       }
       break;
     case railway_interfaces__msg__LocomotiveControl__SET_DIRECTION:
-      Serial.print("Address: "); Serial.println(control->address, HEX);
-      Serial.print("Direction: "); Serial.println(control->direction);
+      //Serial.print("Address: "); Serial.println(control->address, HEX);
+      //Serial.print("Direction: "); Serial.println(control->direction);
       ctrl->setLocoDirection(control->address, control->direction);
       if(lookupLocomotiveIndex(control->address, &locomotive_index)){
         locomotive_status[locomotive_index].direction = control->direction;

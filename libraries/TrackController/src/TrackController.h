@@ -20,6 +20,7 @@
 
 #include <Arduino.h>
 #include <Printable.h>
+#include "mcp2515.hpp"
 
 // ===================================================================
 
@@ -126,6 +127,8 @@
 #define NUMBER_OF_DCC_FUNCTIONS         16
 #define NUMBER_OF_MFX_FUNCTIONS         32
 
+
+
 /**
  * Represents a message going through the Marklin CAN bus. More or
  * less a beautified version of the real CAN message. You normally
@@ -231,8 +234,9 @@ class TrackController {
 	 */
 	boolean mLoopback;
 
+#ifdef ESP32
     TaskHandle_t enqueue_task_h;
-
+#endif
 
 	/**
 	 * Generates a new hash and makes sure it does not conflict

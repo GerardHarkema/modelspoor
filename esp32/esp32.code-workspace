@@ -11,6 +11,10 @@
 		},
 		{
 			"path": "DisplayTest"
+		},
+		{
+			"name": "due_test",
+			"path": "../../../due_test"
 		}
 	],
 	"settings": {

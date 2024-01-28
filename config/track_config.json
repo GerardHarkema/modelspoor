@@ -13,6 +13,13 @@
       "image": "NS1212.jpg",
       "protocol": "DCC",
       "address": 3
+    },
+    {
+      "name": "Hondekop",
+      "type": "Electrischetrein",
+      "image": "hondekop.jpg",
+      "protocol": "MFX",
+      "address": 6
     }
   ],
   "Turnouts": {

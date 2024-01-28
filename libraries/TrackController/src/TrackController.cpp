@@ -55,7 +55,8 @@ int parseHex(String &s, int start, int end, boolean *ok) {
     return value;
 }
 
-#define SIZE 32
+//#define SIZE 32
+#define SIZE 128
 
 #define ulong unsigned long
 
@@ -66,6 +67,10 @@ volatile int posRead = 0;
 volatile int posWrite = 0;
 
 volatile boolean lastOpWasWrite = false;
+
+#ifdef ESP32
+    SemaphoreHandle_t enqueue_sem; 
+#endif
 
 #ifndef IRAM_ATTR
 	#define IRAM_ATTR // definition for Arduino UNO platform
@@ -87,49 +92,81 @@ void IRAM_ATTR enqueue() {
 	lastOpWasWrite = true;
 }
 
+
+volatile boolean enqueue_busy = false;
+volatile boolean dequeue_busy = false;
+
+#if defined(ESP32)
 void enqueue_task(void *pvParameter)
 {
 	while(1)
 	{
 	    if(digitalRead(MCP1512_INT_PINn) == 0){
-			enqueue();
+//			if(xSemaphoreTake(enqueue_sem,( TickType_t ) 10 ) == pdTRUE ){
+//				while(dequeue_busy)taskYIELD();
+				enqueue_busy = true;
+				enqueue();
+				enqueue_busy = false;
+//				xSemaphoreGive(enqueue_sem);
+//			}
 		}
 		taskYIELD();
 	}
 }
-
+#endif
 
 boolean dequeue(can_t *p) {
-	//noInterrupts();
 
-	if (posWrite == posRead && !lastOpWasWrite) {
-		interrupts();
-		return false;
-	}
-
-	memcpy(p, &_buffer[posRead], sizeof(can_t));
-#if 0
-	for(int i = 0; i < 8; i++){
-		Serial.print(" 0x"); Serial.print(p->data[i], HEX);
-	}
-	Serial.println("");
+#ifndef ESP32 
+	noInterrupts();
+#else
+//	if(xSemaphoreTake(enqueue_sem,( TickType_t ) 10 ) == pdTRUE ){
 #endif
-/*
-	p->id=_buffer[posRead].id;
-	p->length=_buffer[posRead].length;
 
-	for (int i = 0; i < p->length; i++) {
-		p->data[i] = _buffer[posRead].data[i];
-	}
-*/
-	//*p = _buffer[posRead];
+//		while(enqueue_busy)taskYIELD();
+		dequeue_busy = true;
 
-	posRead = (posRead + 1) % SIZE;
-	lastOpWasWrite = false;
 
-	//interrupts();
+		if (posWrite == posRead && !lastOpWasWrite) {
+//			interrupts();
+			return false;
+		}
+
+		memcpy(p, &_buffer[posRead], sizeof(can_t));
+	#if 0
+		for(int i = 0; i < 8; i++){
+			Serial.print(" 0x"); Serial.print(p->data[i], HEX);
+		}
+		Serial.println("");
+	#endif
+	/*
+		p->id=_buffer[posRead].id;
+		p->length=_buffer[posRead].length;
+
+		for (int i = 0; i < p->length; i++) {
+			p->data[i] = _buffer[posRead].data[i];
+		}
+	*/
+		//*p = _buffer[posRead];
+
+		posRead = (posRead + 1) % SIZE;
+		lastOpWasWrite = false;
+
+#ifndef ESP32 
+	interrupts();
+#else
+//		xSemaphoreGive(enqueue_sem);
+//	}
+#endif
+		dequeue_busy = false;
 
 	return true;
+}
+
+
+void create_semaphore(){
+	enqueue_sem = xSemaphoreCreateBinary();
+	xSemaphoreGive(enqueue_sem);
 }
 
 // ===================================================================
@@ -249,10 +286,13 @@ void TrackController::begin() {
    	pinMode(SS, OUTPUT);
 
    	pinMode(MCP1512_INT_PINn,  INPUT);
-	//attachInterrupt(digitalPinToInterrupt(MCP1512_INT_PINn), enqueue, FALLING);
 
-
+#if defined(ESP32)
     int app_cpu = xPortGetCoreID();
+
+	// Create mutexes and semaphores before starting tasks
+	create_semaphore();
+
 
     xTaskCreatePinnedToCore(enqueue_task,
                             "enqueue_task", 
@@ -262,7 +302,11 @@ void TrackController::begin() {
                             &enqueue_task_h,
                             app_cpu);
 
-		interrupts();// ???
+
+#else
+	attachInterrupt(digitalPinToInterrupt(MCP1512_INT_PINn), enqueue, FALLING);
+	interrupts();// ???
+#endif
 
 	if (!can_init(5, mLoopback)) {
 		Serial.println(F("!?! Init error"));
@@ -326,7 +370,9 @@ void TrackController::generateHash() {
 // end - no interrupts
 
 void TrackController::end() {
+#ifndef ESP32
 	detachInterrupt(digitalPinToInterrupt(MCP1512_INT_PINn));
+#endif
 
 	can_t t;
 
@@ -390,6 +436,9 @@ boolean TrackController::receiveMessage(TrackMessage &message) {
 			Serial.println();
 		}
 #endif
+
+		if(can.length > 8) return false; // Error in protocol?? Prevent unknown segmentation fault
+
 		message.clear();
 		message.command = (can.id >> 17) & 0xff;
 		message.hash = can.id & 0xffff;

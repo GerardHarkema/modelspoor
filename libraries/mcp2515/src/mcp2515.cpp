@@ -407,7 +407,8 @@ uint8_t can_send_message(tCAN *message)
 #if defined(__AVR_ATmega328P__)
 	_delay_us(1);
 #else
-	ets_delay_us(1);
+	//ets_delay_us(1);
+	vTaskDelay(1);
 #endif
 	
 	// send message
