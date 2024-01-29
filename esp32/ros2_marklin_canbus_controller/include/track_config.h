@@ -1,12 +1,12 @@
 // !!! This is an automated generated header file, do not modify by your self !!!
 // Generated from: ../../config/track_config.json
 // Generated from: ../../config/micro_ros_agent_config.json
-// Timestamp: 29/01/2024 21:19:05
+// Timestamp: 29/01/2024 21:22:54
 #ifndef _TRACK_CONFIG_
 #define _TRACK_CONFIG_
 
-#define SSID   "BirdsModelspoor"
-#define PASSWORD   "Highway1"
+#define SSID   "BirdsBoven"
+#define PASSWORD   "Highway12!"
 uint8_t ip_address[4] = {192, 168, 2, 150};
 #define PORT   8888
 
