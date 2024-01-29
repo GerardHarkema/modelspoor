@@ -68,10 +68,6 @@ volatile int posWrite = 0;
 
 volatile boolean lastOpWasWrite = false;
 
-#ifdef ESP32
-    SemaphoreHandle_t enqueue_sem; 
-#endif
-
 #ifndef IRAM_ATTR
 	#define IRAM_ATTR // definition for Arduino UNO platform
 #endif 
@@ -93,22 +89,13 @@ void IRAM_ATTR enqueue() {
 }
 
 
-volatile boolean enqueue_busy = false;
-volatile boolean dequeue_busy = false;
-
 #if defined(ESP32)
 void enqueue_task(void *pvParameter)
 {
 	while(1)
 	{
 	    if(digitalRead(MCP1512_INT_PINn) == 0){
-//			if(xSemaphoreTake(enqueue_sem,( TickType_t ) 10 ) == pdTRUE ){
-//				while(dequeue_busy)taskYIELD();
-				enqueue_busy = true;
-				enqueue();
-				enqueue_busy = false;
-//				xSemaphoreGive(enqueue_sem);
-//			}
+			enqueue();
 		}
 		taskYIELD();
 	}
@@ -119,13 +106,7 @@ boolean dequeue(can_t *p) {
 
 #ifndef ESP32 
 	noInterrupts();
-#else
-//	if(xSemaphoreTake(enqueue_sem,( TickType_t ) 10 ) == pdTRUE ){
 #endif
-
-//		while(enqueue_busy)taskYIELD();
-		dequeue_busy = true;
-
 
 		if (posWrite == posRead && !lastOpWasWrite) {
 //			interrupts();
@@ -154,19 +135,8 @@ boolean dequeue(can_t *p) {
 
 #ifndef ESP32 
 	interrupts();
-#else
-//		xSemaphoreGive(enqueue_sem);
-//	}
 #endif
-		dequeue_busy = false;
-
 	return true;
-}
-
-
-void create_semaphore(){
-	enqueue_sem = xSemaphoreCreateBinary();
-	xSemaphoreGive(enqueue_sem);
 }
 
 // ===================================================================
@@ -290,10 +260,6 @@ void TrackController::begin() {
 #if defined(ESP32)
     int app_cpu = xPortGetCoreID();
 
-	// Create mutexes and semaphores before starting tasks
-	create_semaphore();
-
-
     xTaskCreatePinnedToCore(enqueue_task,
                             "enqueue_task", 
                             1024,
@@ -408,16 +374,10 @@ boolean TrackController::receiveMessage(TrackMessage &message) {
 	can_t can;
 
 	boolean result = dequeue(&can);
-//	boolean result = /* can_check_message() && */ can_get_message(&can);
 
 	//Serial.println(result);
 	if (result) {
-//		Serial.print("*");
 
-
-//	boolean result = /* can_check_message() && */ can_get_message(&can);
-
-//	if (result) {
 #if 0
 		if (mDebug) {
 			

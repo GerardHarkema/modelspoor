@@ -152,9 +152,9 @@ class locomotive_control(Node):
         self.locomotive_msg.command = LocomotiveControl().__class__.SET_DIRECTION
         self.locomotive_msg.speed = 0
         #disable events
-        self.speed_slider.disable();
+        self.speed_slider.disable()
         self.speed_slider.value = 0
-        self.speed_slider.enable();
+        self.speed_slider.enable()
         if(self.direction_button.text == 'FORWARD'):
             self.direction_button.text ='REVERSE'
             self.locomotive_msg.direction = LocomotiveControl().__class__.DIRECTION_FORWARD
@@ -181,6 +181,14 @@ class locomotive_control(Node):
     def set_status(self, status) -> None:
         #print("set_status_indicator")
         if(self.locomotive_msg.address == status.address):
+            print(status)
+            self.speed_slider.disable()
+            self.speed_slider.value = status.speed
+            self.speed_slider.enable()
+            if status.direction == LocomotiveState().__class__.DIRECTION_FORWARD:
+                self.direction_button.text ='REVERSE'
+            else:
+                self.direction_button.text ='FORWARD'
             pass
 
 class NiceGuiNode(Node):
@@ -208,7 +216,7 @@ class NiceGuiNode(Node):
         self.turnout_control_publisher = self.create_publisher(TurnoutControl, topic, 1)
 
         topic = "/railtrack/locomotive/status"
-        self.locomotive_status_subscription = self.create_subscription(LocomotiveState, topic, self.locomotive_status_callback, qos_profile=self.qos_profile)
+        self.locomotive_status_subscription = self.create_subscription(LocomotiveState, topic, self.locomotive_status_callback)#, qos_profile=self.qos_profile)
 
         topic = "/railtrack/locomotive/control"
         self.locomotive_control_publisher = self.create_publisher(LocomotiveControl, topic, 1)
@@ -249,6 +257,7 @@ class NiceGuiNode(Node):
             turnout.set_status_indicator(status)
 
     def locomotive_status_callback(self, status):
+        print(status)
         for loc in self.locomotivesui:
             loc.set_status(status)
 

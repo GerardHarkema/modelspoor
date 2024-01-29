@@ -57,9 +57,11 @@ typedef struct{
     unsigned int address;
 }LOCOMOTIVE;
 
+//uint8_t ip_address[4] = {192, 168, 2, 150};
+
 #include "track_config.h"
 
-railway_interfaces__msg__TurnoutState turnout_status [NUMBER_OF_ACTIVE_TURNOUTS_C] = {0};
+railway_interfaces__msg__TurnoutState turnout_status[NUMBER_OF_ACTIVE_TURNOUTS_C] = {0};
 railway_interfaces__msg__LocomotiveState locomotive_status[NUMBER_OF_ACTIVE_LOCOMOTIVES] = {0};
 
 rclc_support_t support;
@@ -72,15 +74,8 @@ rcl_timer_t power_state_publisher_timer;
 #define RCCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){error_loop();}}
 #define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){}}
 
-#if 0
-#define SSID          "BirdsModelspoor"
-#else
-#define SSID          "BirdsBoven"
-#endif
 
-#define PASSWORD      "Highway12!"
-IPAddress agent_ip(192, 168, 2, 150);
-#define AGENT_PORT      8888
+IPAddress agent_ip(ip_address[0], ip_address[1], ip_address[2], ip_address[3]);
 
 void error_loop(){
   Serial.println("Error: System halted");
@@ -133,11 +128,10 @@ int locomotive_state_index = 0;
 void locomotive_state_publisher_timer_callback(rcl_timer_t * timer, int64_t last_call_time) {
   RCLC_UNUSED(last_call_time);
   if (timer != NULL) {
-#if 1
+    Serial.print("*");
     RCSOFTCHECK(rcl_publish(&locomoitive_status_publisher, &locomotive_status[locomotive_state_index], NULL));
     locomotive_state_index++;
     if(locomotive_state_index == NUMBER_OF_ACTIVE_LOCOMOTIVES) turnout_state_index = 0;
-#endif
   }
 }
 
@@ -234,7 +228,7 @@ void setup() {
 
   for(int i = 0; i < NUMBER_OF_ACTIVE_TURNOUTS_C; i++){
     turnout_status[i].number = active_turnouts_c[i];
-    turnout_status[i].state = false;
+    ctrl->getTurnout(turnout_status[i].number, &turnout_status[i].state);
   }
 
   for(int i = 0; i < NUMBER_OF_ACTIVE_LOCOMOTIVES; i++){
@@ -255,13 +249,20 @@ void setup() {
       break;
 
     }
+    word speed;
+    ctrl->getLocoSpeed(locomotive_status[i].address, &speed);
+    locomotive_status[i].speed = speed;
+    byte direction;
+    ctrl->getLocoDirection(locomotive_status[i].address, &direction);
+    locomotive_status[i].direction = direction;
+
 #if 0
       for(int j = 0; j < locomotive_status[i].function.data.size; j++){
         //locomotive_status[i].function.data.data[j] = false;
       }
 #endif
   }
-  set_microros_wifi_transports(SSID, PASSWORD, agent_ip, (size_t)AGENT_PORT);
+  set_microros_wifi_transports(SSID, PASSWORD, agent_ip, (size_t)PORT);
 
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
@@ -368,7 +369,6 @@ void setup() {
   RCCHECK(rclc_executor_add_timer(&executor, &locomotive_state_publisher_timer));
   RCCHECK(rclc_executor_add_subscription(&executor, &locomotive_control_subscriber, &locomotive_control, &locomotive_control_callback, ON_NEW_DATA));
 
-  //delay(25);
   RCCHECK(rclc_executor_add_timer(&executor, &power_state_publisher_timer));
   RCCHECK(rclc_executor_add_subscription(&executor, &power_control_subscriber, &power_control, &power_control_callback, ON_NEW_DATA));
 
@@ -400,6 +400,10 @@ void loop() {
     
 
   #endif
+
+    int adress = (message.data[2] << 8) 
+                 + message.data[3];
+    int index;
     switch(message.command){
       case SYSTEM_BEFEHL:
         switch(message.data[4]){
@@ -414,9 +418,6 @@ void loop() {
         }
       case ZUBEHOR_SCHALTEN:
           word position;
-          int adress;
-          adress = (message.data[2] << 8) 
-                 + message.data[3];
           //Serial.print("Adress: 0x");Serial.println(adress, HEX);
           position = message.data[4];
 
@@ -443,6 +444,21 @@ void loop() {
           }     
 #endif
   
+        break;
+      case LOC_GESCHWINDIGHEID:
+          word speed;
+          speed = (message.data[4] << 8) 
+                 + message.data[5];
+          if(lookupLocomotiveIndex(adress, &index)){
+            locomotive_status[index].speed = speed;
+          }
+          break;
+      case LOC_RICHTUNG:
+          if(lookupLocomotiveIndex(adress, &index)){
+            locomotive_status[index].direction = message.data[4];
+          }
+          break;
+      case LOC_FUNCTION:
         break;
       default:
         break;    }

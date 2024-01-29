@@ -1,13 +1,19 @@
 import json
 from datetime import datetime
 
-config_file = '../../config/track_config.json'
-
-with open(config_file, 'r', encoding='utf-8') as f:
+track_config_file = '../../config/track_config.json'
+with open(track_config_file, 'r', encoding='utf-8') as f:
     track_config = json.load(f)
 
+agent_config_file = '../../config/micro_ros_agent_config.json'
+with open(agent_config_file, 'r', encoding='utf-8') as f:
+    agent_config = json.load(f)
+
+
 header = "// !!! This is an automated generated header file, do not modify by your self !!!\n"
-line = "// Generated from: " + config_file + "\n"
+line = "// Generated from: " + track_config_file + "\n"
+header = header + line
+line = "// Generated from: " + agent_config_file + "\n"
 header = header + line
 
 # datetime object containing current date and time
@@ -18,6 +24,23 @@ line = "#ifndef _TRACK_CONFIG_\n"
 header = header + line
 line = "#define _TRACK_CONFIG_\n"
 header = header + line + "\n"
+
+line = "#define SSID   \"" + agent_config['agent']['ssid'] + "\"\n"
+header = header + line
+line = "#define PASSWORD   \"" + agent_config['agent']['password'] + "\"\n"
+header = header + line
+
+ip_address = agent_config['agent']['ip']
+ip_segements = ip_address.split(":")
+line = "uint8_t ip_address[4] = {" + ip_segements[0] + ", "\
+                                   + ip_segements[1] + ", "\
+                                   + ip_segements[2] + ", "\
+                                   + ip_segements[3] + "};\n"
+header = header + line
+
+line = "#define PORT   " + str(agent_config['agent']['port']) + "\n\n"
+header = header + line
+
 
 locomotives = track_config["Locomotives"]
 #print(locomotives)

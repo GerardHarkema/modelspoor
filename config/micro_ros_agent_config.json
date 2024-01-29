@@ -1,0 +1,9 @@
+{
+  "agent": 
+    {
+      "ssid": "BirdsModelspoor",
+      "password": "Highway1",
+      "ip": "192:168:2:150",
+      "port": 8888
+    }
+}
