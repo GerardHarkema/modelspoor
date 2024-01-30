@@ -1,0 +1,16 @@
+{
+    "Turnouts":[
+        {
+            "type" : "magnet",
+            "number" : 12,
+            "red_pin": 27,
+            "green_pin" : 25
+        },
+        {
+            "type" : "magnet",
+            "number" : 13,
+            "red_pin": 32,
+            "green_pin" : 12
+        }
+    ]
+}

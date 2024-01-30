@@ -15,7 +15,7 @@
 #include <railway_interfaces/msg/turnout_control.h>
 #include <railway_interfaces/msg/turnout_state.h>
 
-#include "rail_track_def.h"
+//#include "rail_track_def.h"
 
 #if !defined(ESP32) && !defined(TARGET_PORTENTA_H7_M7) && !defined(ARDUINO_NANO_RP2040_CONNECT) && !defined(ARDUINO_WIO_TERMINAL)
 #error This example is only avaible for Arduino Portenta, Arduino Nano RP2040 Connect, ESP32 Dev module and Wio Terminal
@@ -37,10 +37,9 @@ typedef struct{
   int green_pin;
 }TURNOUT_CONFIG;
 
-TURNOUT_CONFIG turnout_config[] ={{10, 27, 25},
-                                  {11, 32, 12}};
+#include "turnout_config.h"
 
-int number_of_turnouts = sizeof(turnout_config)/sizeof(TURNOUT_CONFIG);  
+IPAddress agent_ip(ip_address[0], ip_address[1], ip_address[2], ip_address[3]);
 
 bool *turnout_status;
 
@@ -50,10 +49,10 @@ rcl_timer_t timer;
 
 bool lookupTurnoutIndex(int turnout_number, int *turnout_index){
   int i;
-  for(i = 0; i < number_of_turnouts; i++){
+  for(i = 0; i < NUMBER_OF_TURNOUTS; i++){
     if(turnout_config[i].turnout_number == turnout_number) break;
   }
-  if(i == number_of_turnouts) return false;
+  if(i == NUMBER_OF_TURNOUTS) return false;
   *turnout_index = i;
   return true;
 }
@@ -92,7 +91,7 @@ void timer_callback(rcl_timer_t * timer, int64_t last_call_time) {
   if (timer != NULL) {
     railway_interfaces__msg__TurnoutState msg;
 
-    for(int i = 0; i < number_of_turnouts; i++){
+    for(int i = 0; i < NUMBER_OF_TURNOUTS; i++){
       msg.number = turnout_config[i].turnout_number;
       msg.state = turnout_status[i];
       RCSOFTCHECK(rcl_publish(&turnout_status_publisher, &msg, NULL));
@@ -107,17 +106,16 @@ void setup() {
   Serial.begin(115200);
   Serial.println("Turnout-decoder started");
 
-  turnout_status = (bool *)malloc(number_of_turnouts * sizeof(bool));
+  turnout_status = (bool *)malloc(NUMBER_OF_TURNOUTS * sizeof(bool));
 
-  EEPROM.begin(number_of_turnouts);
+  EEPROM.begin(NUMBER_OF_TURNOUTS);
 
-  set_microros_wifi_transports(SSID, PASSWORD, agent_ip, (size_t)AGENT_PORT);
-
+  set_microros_wifi_transports(SSID, PASSWORD, agent_ip, (size_t)PORT);
 
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
 
-  for(int i=0; i < number_of_turnouts; i++){
+  for(int i=0; i < NUMBER_OF_TURNOUTS; i++){
     pinMode(turnout_config[i].green_pin, OUTPUT);
     digitalWrite(turnout_config[i].green_pin, LOW);
 

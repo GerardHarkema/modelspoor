@@ -1,15 +1,15 @@
 // !!! This is an automated generated header file, do not modify by your self !!!
-// Generated from: ../../config/track_config.json
-// Generated from: ../../config/micro_ros_agent_config.json
-// Timestamp: 29/01/2024 21:22:54
+// Timestamp: 30/01/2024 19:10:46
 #ifndef _TRACK_CONFIG_
 #define _TRACK_CONFIG_
 
-#define SSID   "BirdsBoven"
+// Agent config generated from: ../../config/micro_ros_agent_config.json
+#define SSID   "BirdsModelspoor"
 #define PASSWORD   "Highway12!"
 uint8_t ip_address[4] = {192, 168, 2, 150};
 #define PORT   8888
 
+// Track config generated from: ../../config/track_config.json
 LOCOMOTIVE active_locomotives[] = {{5, MFX, 0},{3, DCC, 0},{6, MFX,  0}};
 #define  NUMBER_OF_ACTIVE_LOCOMOTIVES   3
 

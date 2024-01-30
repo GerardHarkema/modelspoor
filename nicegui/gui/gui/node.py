@@ -4,7 +4,6 @@ from pathlib import Path
 
 import rclpy
 import os
-
 import json
 
 from rclpy.executors import ExternalShutdownException
@@ -85,19 +84,16 @@ class locomotive_control(Node):
                 pass
         self.speed = 0
         self.max_speed = 1000;
-        self.increment_speed = 100
-        self.decrement_speed = 100
+        self.max_speed = locomotive_descr['max_speed']
+        self.increment_speed_step = 100
+        self.increment_speed_step = locomotive_descr['increment_speed_step']
+        self.decrement_speed_step = 100
+        self.decrement_speed_step = locomotive_descr['decrement_speed_step']
 
-        #self.locomotive_msg.name = locomotive_descr['name']
-        #self.locomotive_msg.address = locomotive_descr['address']
-        #self.locomotive_msg.protocol = locomotive_descr['protocol']
         with ui.card():
             text = 'Locomotive: ' + str(locomotive_descr['type'])
             ui.label(text)
             image = locomotive_images_path + "/" + locomotive_descr["image"]
-            print(image)
-            #image = os.getcwd() + "/"+ locomotive_descr["image"]
-            #ui.label(os.getcwd())
 
             ui.image(image).classes('w-64')
             with ui.grid(columns=3):
@@ -132,7 +128,7 @@ class locomotive_control(Node):
         pass
 
     def set_increment_speed(self):
-        new_speed = self.speed + self.increment_speed
+        new_speed = self.speed + self.increment_speed_step
         if new_speed > self.max_speed:
             new_speed = self.max_speed
         self.speed = new_speed
@@ -140,7 +136,7 @@ class locomotive_control(Node):
         pass
 
     def set_decrement_speed(self):
-        new_speed = self.speed - self.decrement_speed
+        new_speed = self.speed - self.decrement_speed_step
         if new_speed < 0:
             new_speed = 0
         self.speed = new_speed
@@ -216,7 +212,7 @@ class NiceGuiNode(Node):
         self.turnout_control_publisher = self.create_publisher(TurnoutControl, topic, 1)
 
         topic = "/railtrack/locomotive/status"
-        self.locomotive_status_subscription = self.create_subscription(LocomotiveState, topic, self.locomotive_status_callback)#, qos_profile=self.qos_profile)
+        self.locomotive_status_subscription = self.create_subscription(LocomotiveState, topic, self.locomotive_status_callback, qos_profile=self.qos_profile)
 
         topic = "/railtrack/locomotive/control"
         self.locomotive_control_publisher = self.create_publisher(LocomotiveControl, topic, 1)

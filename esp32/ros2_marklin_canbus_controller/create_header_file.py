@@ -9,12 +9,7 @@ agent_config_file = '../../config/micro_ros_agent_config.json'
 with open(agent_config_file, 'r', encoding='utf-8') as f:
     agent_config = json.load(f)
 
-
 header = "// !!! This is an automated generated header file, do not modify by your self !!!\n"
-line = "// Generated from: " + track_config_file + "\n"
-header = header + line
-line = "// Generated from: " + agent_config_file + "\n"
-header = header + line
 
 # datetime object containing current date and time
 now = datetime.now()
@@ -25,9 +20,11 @@ header = header + line
 line = "#define _TRACK_CONFIG_\n"
 header = header + line + "\n"
 
-line = "#define SSID   \"" + agent_config['agent']['ssid'] + "\"\n"
+line = "// Agent config generated from: " + agent_config_file + "\n"
 header = header + line
-line = "#define PASSWORD   \"" + agent_config['agent']['password'] + "\"\n"
+line = "#define SSID   \"" + agent_config['wifi']['ssid'] + "\"\n"
+header = header + line
+line = "#define PASSWORD   \"" + agent_config['wifi']['password'] + "\"\n"
 header = header + line
 
 ip_address = agent_config['agent']['ip']
@@ -42,6 +39,8 @@ line = "#define PORT   " + str(agent_config['agent']['port']) + "\n\n"
 header = header + line
 
 
+line = "// Track config generated from: " + track_config_file + "\n"
+header = header + line
 locomotives = track_config["Locomotives"]
 #print(locomotives)
 

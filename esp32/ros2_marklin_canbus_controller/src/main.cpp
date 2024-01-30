@@ -25,8 +25,6 @@
 
 const bool DEBUG = true;
 
-bool TrackPower = false;
-
 TrackController *ctrl;
 
 TrackMessage message;
@@ -47,6 +45,7 @@ railway_interfaces__msg__TurnoutControl turnout_control;
 railway_interfaces__msg__LocomotiveControl locomotive_control;
 std_msgs__msg__Bool power_control;
 
+
 typedef enum{
     MM1, MM2, DCC, MFX
 }PROTOCOL;
@@ -57,12 +56,15 @@ typedef struct{
     unsigned int address;
 }LOCOMOTIVE;
 
-//uint8_t ip_address[4] = {192, 168, 2, 150};
-
 #include "track_config.h"
+
+IPAddress agent_ip(ip_address[0], ip_address[1], ip_address[2], ip_address[3]);
 
 railway_interfaces__msg__TurnoutState turnout_status[NUMBER_OF_ACTIVE_TURNOUTS_C] = {0};
 railway_interfaces__msg__LocomotiveState locomotive_status[NUMBER_OF_ACTIVE_LOCOMOTIVES] = {0};
+std_msgs__msg__Bool power_status = {0};
+
+
 
 rclc_support_t support;
 rcl_allocator_t allocator;
@@ -71,11 +73,9 @@ rcl_node_t node;
 rcl_timer_t turnout_state_publisher_timer;
 rcl_timer_t locomotive_state_publisher_timer;
 rcl_timer_t power_state_publisher_timer;
+
 #define RCCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){error_loop();}}
 #define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){}}
-
-
-IPAddress agent_ip(ip_address[0], ip_address[1], ip_address[2], ip_address[3]);
 
 void error_loop(){
   Serial.println("Error: System halted");
@@ -111,10 +111,6 @@ void turnout_state_publisher_timer_callback(rcl_timer_t * timer, int64_t last_ca
   RCLC_UNUSED(last_call_time);
   if (timer != NULL) {
 #if 1
-    //railway_interfaces__msg__TurnoutState turnout_msg;
-
-    //turnout_msg.number = active_turnouts_c[turnout_state_index];
-    //turnout_msg.state = turnout_status[turnout_state_index];
     RCSOFTCHECK(rcl_publish(&turnout_status_publisher, &turnout_status[turnout_state_index], NULL));
     turnout_state_index++;
     if(turnout_state_index == NUMBER_OF_ACTIVE_TURNOUTS_C) turnout_state_index = 0;
@@ -128,10 +124,11 @@ int locomotive_state_index = 0;
 void locomotive_state_publisher_timer_callback(rcl_timer_t * timer, int64_t last_call_time) {
   RCLC_UNUSED(last_call_time);
   if (timer != NULL) {
-    Serial.print("*");
+#if 1
     RCSOFTCHECK(rcl_publish(&locomoitive_status_publisher, &locomotive_status[locomotive_state_index], NULL));
     locomotive_state_index++;
-    if(locomotive_state_index == NUMBER_OF_ACTIVE_LOCOMOTIVES) turnout_state_index = 0;
+    if(locomotive_state_index == NUMBER_OF_ACTIVE_LOCOMOTIVES) locomotive_state_index = 0;
+#endif
   }
 }
 
@@ -139,9 +136,7 @@ void power_state_publisher_timer_callback(rcl_timer_t * timer, int64_t last_call
   RCLC_UNUSED(last_call_time);
   if (timer != NULL) {
 #if 1
-    std_msgs__msg__Bool power_msg;
-    power_msg.data = TrackPower;
-    RCSOFTCHECK(rcl_publish(&power_status_publisher, &power_msg, NULL));
+    RCSOFTCHECK(rcl_publish(&power_status_publisher, &power_status, NULL));
 #endif
   }
 
@@ -155,7 +150,7 @@ void turnout_control_callback(const void * msgin)
   boolean straight = control->state ? true : false;
   //Serial.println("turnout_control_callback");
   // update controller always !!!
-  if(TrackPower){
+  if(power_status.data){
     ctrl->setTurnout(TURNOUT_BASE_ADDRESS + control->number - 1, straight);
     if(lookupTurnoutIndex(control->number, &index)){
       turnout_status[index].state = straight;
@@ -207,7 +202,7 @@ void power_control_callback(const void * msgin)
   const std_msgs__msg__Bool * control = (const std_msgs__msg__Bool *)msgin;
   //Serial.println("power_control_callback");
   ctrl->setPower(control->data);
-  TrackPower = control->data;
+  power_status.data = control->data;
 //  else Serial.println("Invalid Turnout");
 }
 
@@ -225,6 +220,8 @@ void setup() {
     Serial.println("--- ---- - ---- ---- ---- ---- ---- ---- ---- ---- ---- ----");
   }
   ctrl->begin();
+
+  power_status.data = false;
 
   for(int i = 0; i < NUMBER_OF_ACTIVE_TURNOUTS_C; i++){
     turnout_status[i].number = active_turnouts_c[i];
@@ -285,7 +282,7 @@ void setup() {
     ROSIDL_GET_MSG_TYPE_SUPPORT(railway_interfaces, msg, TurnoutState),
     topic_name));
 
-  
+
   // create turnout_control_subscriber
   sprintf(topic_name, "railtrack/turnout/control");
   // create turnout_status_publisher
@@ -326,7 +323,6 @@ void setup() {
     ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Bool),
     topic_name));
 
-
   sprintf(topic_name, "railtrack/power_control");
   // create power_control_subscriber
   RCCHECK(rclc_subscription_init_default(
@@ -334,6 +330,7 @@ void setup() {
     &node,
     ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Bool),
     topic_name));
+
   // create timer,
 #define CYCLE_TIME    1000
   unsigned int timer_timeout = CYCLE_TIME / NUMBER_OF_ACTIVE_TURNOUTS_C;
@@ -408,10 +405,10 @@ void loop() {
       case SYSTEM_BEFEHL:
         switch(message.data[4]){
           case SYSTEM_STOP:
-              TrackPower = false;
+              power_status.data = false;
             break;
           case SYSTEM_GO:
-              TrackPower = true;
+              power_status.data = true;
             break;
           default:
             break;
@@ -456,6 +453,7 @@ void loop() {
       case LOC_RICHTUNG:
           if(lookupLocomotiveIndex(adress, &index)){
             locomotive_status[index].direction = message.data[4];
+            locomotive_status[index].speed = 0;
           }
           break;
       case LOC_FUNCTION:
@@ -466,7 +464,7 @@ void loop() {
 #endif
   vTaskDelay(20);
   //delay(20);
-#if 1
+
   RCSOFTCHECK(rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100)));
-#endif
+
 }
