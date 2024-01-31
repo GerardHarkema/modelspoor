@@ -14,9 +14,9 @@ def generate_launch_description():
 
     return LaunchDescription([
         Node(
-            package='gui',
+            package='railtrack_gui',
             executable='nicegui_node',
-            name='example_gui',
+            name='railtrack_gui_node',
             output='screen',
             parameters=[{'config_file': config_file},
                         {"locomotive_images_path": locomotive_images_path}

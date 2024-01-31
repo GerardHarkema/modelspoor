@@ -62,7 +62,7 @@ class turnout_control(Node):
 class locomotive_control(Node):
 
     def __init__(self, locomotive_descr, control_publisher, locomotive_images_path):
-        #super().__init__('nicegui')
+        #super().__init__('railtrackgui')
 
         self.locomotive_descr = locomotive_descr
         self.control_publisher = control_publisher;
@@ -91,7 +91,7 @@ class locomotive_control(Node):
         self.decrement_speed_step = locomotive_descr['decrement_speed_step']
 
         with ui.card():
-            text = 'Locomotive: ' + str(locomotive_descr['type'])
+            text = str(locomotive_descr['type']) + ': ' + str(locomotive_descr['name'])
             ui.label(text)
             image = locomotive_images_path + "/" + locomotive_descr["image"]
 
@@ -144,13 +144,9 @@ class locomotive_control(Node):
         pass
 
     def set_direction(self):
-        print(self.locomotive_msg)
+        #print(self.locomotive_msg)
         self.locomotive_msg.command = LocomotiveControl().__class__.SET_DIRECTION
         self.locomotive_msg.speed = 0
-        #disable events
-        self.speed_slider.disable()
-        self.speed_slider.value = 0
-        self.speed_slider.enable()
         if(self.direction_button.text == 'FORWARD'):
             self.direction_button.text ='REVERSE'
             self.locomotive_msg.direction = LocomotiveControl().__class__.DIRECTION_FORWARD
@@ -162,6 +158,10 @@ class locomotive_control(Node):
             + ", Loc ID: " + str(self.locomotive_descr['address'])         \
             + ", Direction: " + self.direction_button.text
         ui.notify(notify_text)
+        #disable events
+        self.speed_slider.disable()
+        self.speed_slider.value = 0
+        self.speed_slider.enable()
         pass
 
     def stop(self):
@@ -177,7 +177,7 @@ class locomotive_control(Node):
     def set_status(self, status) -> None:
         #print("set_status_indicator")
         if(self.locomotive_msg.address == status.address):
-            print(status)
+            #print(status)
             self.speed_slider.disable()
             self.speed_slider.value = status.speed
             self.speed_slider.enable()
@@ -187,10 +187,10 @@ class locomotive_control(Node):
                 self.direction_button.text ='FORWARD'
             pass
 
-class NiceGuiNode(Node):
+class RailTrackNode(Node):
 
     def __init__(self) -> None:
-        super().__init__('nicegui')
+        super().__init__('railtrack_gui')
         
         self.declare_parameter("config_file", "");
         self.config_file = self.get_parameter("config_file").get_parameter_value().string_value
@@ -253,7 +253,7 @@ class NiceGuiNode(Node):
             turnout.set_status_indicator(status)
 
     def locomotive_status_callback(self, status):
-        print(status)
+        #print(status)
         for loc in self.locomotivesui:
             loc.set_status(status)
 
@@ -305,14 +305,10 @@ def main() -> None:
 
 
 def ros_main() -> None:
-    #with open('/home/gerard/modelspoor_ws/src/config/track_config.json', 'w', encoding='utf-8') as f:
-    #    json.dump(track_config, f, ensure_ascii=False, indent=2)
-    #with open('/home/gerard/modelspoor_ws/src/config/track_config.json', 'r', encoding='utf-8') as f:
-    #    track_config = json.load(f)
-    #print(track_config)
+
     rclpy.init()
 
-    node = NiceGuiNode()
+    node = RailTrackNode()
     try:
         rclpy.spin(node)
     except ExternalShutdownException:

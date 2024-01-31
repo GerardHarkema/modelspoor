@@ -15,13 +15,14 @@ setup(
     license=package_xml.find('license').text,
     data_files=[
         (str(data), ['package.xml']),
-        (str(data / 'launch'), ['launch/main_launch.py']),
+        (str(data / 'launch'), ['launch/railtrack_launch.py']),
+        #(str(data / 'images'), ['../../config/images/*.*']),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
     entry_points={
         'console_scripts': [
-            'nicegui_node = gui.node:main',
+            'nicegui_node = railtrack_gui.railtrack_node:main',
         ],
     },
 )

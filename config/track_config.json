@@ -1,8 +1,8 @@
 {
   "Locomotives": [
     {
-      "name": "Stoomtrein",
-      "type": "Stoomtrein",
+      "name": "DB 74 854",
+      "type": "Stoom Locomotief",
       "image": "stoom_loc.jpg",
       "protocol": "MFX",
       "address": 5,
@@ -12,7 +12,7 @@
     },
     {
       "name": "NS1212",
-      "type": "Electrischetrein",
+      "type": "Elektrische Locomotief",
       "image": "NS1212.jpg",
       "protocol": "DCC",
       "address": 3,
@@ -21,8 +21,8 @@
       "increment_speed_step" : 50
     },
     {
-      "name": "Hondekop",
-      "type": "Electrischetrein",
+      "name": "Hondekop, mat 65",
+      "type": "Treinstel",
       "image": "hondekop.jpg",
       "protocol": "MFX",
       "address": 6,

@@ -9,7 +9,7 @@ from luma.lcd.device import st7735
 from luma.core.render import canvas
 from PIL import ImageFont
 
-font_path = '/home/luma.examples/examples/fonts/ChiKareGo.ttf'
+font_path = '/home/gerard/luma.examples/examples/fonts/ChiKareGo.ttf'
 s = spi(port=0, device=0, cs_high=True, gpio_DC=23, gpio_RST=24)
 device=st7735(s,rotate=0,width=160,height=128,h_offset=0,v_offset=0,bgr=False)
 
@@ -26,7 +26,7 @@ def primitives(device, draw):
 	draw.line((130, 4, 155, 124), fill='yellow')
 	draw.line((130, 124, 155, 4), fill='yellow')
 	# Print 'AZ-Delivery'
-	draw.text((10, 60), 'AZ-Delivery', fill=’red’)
+	draw.text((10, 60), 'AZ-Delivery', fill='red')
 	# Change font adn size of text and print 'AZ-Delivery'
 	size = 22
 	new_font = ImageFont.truetype(font_path, size)
