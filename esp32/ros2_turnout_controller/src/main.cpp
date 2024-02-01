@@ -81,6 +81,7 @@ void wissel_control_callback(const void * msgin)
 
       turnout_status[turnout_index] = control->state ? true : false;
       EEPROM.writeBool(turnout_index, turnout_status[turnout_index]);
+      EEPROM.commit();
   }
 //  else Serial.println("Invalid Turnout");
 
@@ -132,9 +133,9 @@ void setup() {
   RCCHECK(rclc_support_init(&support, 0, NULL, &allocator));
 
   // create node
-  char node_name[40];
-  sprintf(node_name, "turnout_decoder_node_%i" , turnout_config[0].turnout_number);
-  RCCHECK(rclc_node_init_default(&node, node_name, "", &support));
+  //char node_name[40];
+  //sprintf(node_name, "turnout_decoder_node_%i" , turnout_config[0].turnout_number);
+  RCCHECK(rclc_node_init_default(&node, NODE_NAME, "", &support));
 
   char topic_name[40];
   sprintf(topic_name, "railtrack/turnout/status");

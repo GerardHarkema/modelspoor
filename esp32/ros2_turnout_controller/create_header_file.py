@@ -56,6 +56,10 @@ def main():
     line = "// Turnout config generated from: " + turnout_config_file + "\n"
     header = header + line
 
+    node_name = turnout_config["Node_name"]
+    line = "#define  NODE_NAME  \"" + node_name + "\"\n"
+    header = header + line + "\n"
+
     turnouts = turnout_config["Turnouts"]
     line = "TURNOUT_CONFIG turnout_config[] = {"
     for i in range(len(turnouts) - 1):

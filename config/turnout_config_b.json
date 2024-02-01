@@ -1,4 +1,5 @@
 {
+    "Node_name" : "turnout_group_b",
     "Turnouts":[
         {
             "type" : "magnet",

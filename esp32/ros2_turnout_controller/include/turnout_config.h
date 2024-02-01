@@ -1,5 +1,5 @@
 // !!! This is an automated generated header file, do not modify by your self !!!
-// Timestamp: 30/01/2024 16:16:46
+// Timestamp: 01/02/2024 17:11:13
 #ifndef _TURNOUT_CONFIG_
 #define _TURNOUT_CONFIG_
 
@@ -10,6 +10,8 @@ uint8_t ip_address[4] = {192, 168, 2, 150};
 #define PORT   8888
 
 // Turnout config generated from: /home/gerard/modelspoor_ws/src/config/turnout_config_a.json
+#define  NODE_NAME  "turnout_group_a"
+
 TURNOUT_CONFIG turnout_config[] = {{10, 27, 25},{11, 32, 12}};
 #define  NUMBER_OF_TURNOUTS  2
 

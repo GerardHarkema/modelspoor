@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <EEPROM.h>
 
 #include <micro_ros_platformio.h>
 
@@ -110,11 +111,9 @@ int turnout_state_index = 0;
 void turnout_state_publisher_timer_callback(rcl_timer_t * timer, int64_t last_call_time) {
   RCLC_UNUSED(last_call_time);
   if (timer != NULL) {
-#if 1
     RCSOFTCHECK(rcl_publish(&turnout_status_publisher, &turnout_status[turnout_state_index], NULL));
     turnout_state_index++;
     if(turnout_state_index == NUMBER_OF_ACTIVE_TURNOUTS_C) turnout_state_index = 0;
-#endif
   }
 }
 
@@ -124,20 +123,16 @@ int locomotive_state_index = 0;
 void locomotive_state_publisher_timer_callback(rcl_timer_t * timer, int64_t last_call_time) {
   RCLC_UNUSED(last_call_time);
   if (timer != NULL) {
-#if 1
     RCSOFTCHECK(rcl_publish(&locomoitive_status_publisher, &locomotive_status[locomotive_state_index], NULL));
     locomotive_state_index++;
     if(locomotive_state_index == NUMBER_OF_ACTIVE_LOCOMOTIVES) locomotive_state_index = 0;
-#endif
   }
 }
 
 void power_state_publisher_timer_callback(rcl_timer_t * timer, int64_t last_call_time) {
   RCLC_UNUSED(last_call_time);
   if (timer != NULL) {
-#if 1
     RCSOFTCHECK(rcl_publish(&power_status_publisher, &power_status, NULL));
-#endif
   }
 
 }
@@ -146,17 +141,17 @@ void turnout_control_callback(const void * msgin)
 {  
   const railway_interfaces__msg__TurnoutControl * control = (const railway_interfaces__msg__TurnoutControl *)msgin;
   int index;
-#if 1
   boolean straight = control->state ? true : false;
   //Serial.println("turnout_control_callback");
   // update controller always !!!
   if(power_status.data){
     ctrl->setTurnout(TURNOUT_BASE_ADDRESS + control->number - 1, straight);
     if(lookupTurnoutIndex(control->number, &index)){
+      EEPROM.writeBool(index, straight);
+      EEPROM.commit();
       turnout_status[index].state = straight;
     }
   }
-#endif
 //  else Serial.println("Invalid Turnout");
 }
 
@@ -221,11 +216,14 @@ void setup() {
   }
   ctrl->begin();
 
+  EEPROM.begin(NUMBER_OF_ACTIVE_TURNOUTS_C);
+
   power_status.data = false;
 
   for(int i = 0; i < NUMBER_OF_ACTIVE_TURNOUTS_C; i++){
     turnout_status[i].number = active_turnouts_c[i];
-    ctrl->getTurnout(turnout_status[i].number, &turnout_status[i].state);
+    turnout_status[i].state = EEPROM.readBool(i);
+    //ctrl->getTurnout(turnout_status[i].number, &turnout_status[i].state);
   }
 
   for(int i = 0; i < NUMBER_OF_ACTIVE_LOCOMOTIVES; i++){
@@ -375,7 +373,6 @@ void setup() {
 void loop() {
 
   //Serial.print("*");
-#if 1
   if(ctrl->receiveMessage(message)){
 #if 0
     Serial.print("COMMAND: ");
@@ -461,7 +458,7 @@ void loop() {
       default:
         break;    }
   }
-#endif
+
   vTaskDelay(20);
   //delay(20);
 
