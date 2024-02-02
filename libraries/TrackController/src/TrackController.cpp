@@ -479,7 +479,7 @@ boolean TrackController::setPower(boolean power) {
 	return exchangeMessage(message, message, 1000);
 }
 
-
+#if 0
 boolean TrackController::getPower(boolean *power) {
 	TrackMessage message;
 
@@ -493,6 +493,7 @@ boolean TrackController::getPower(boolean *power) {
 
 	return true;
 }
+#endif
 boolean TrackController::setLocoDirection(word address, byte direction) {
 	TrackMessage message;
 

@@ -100,8 +100,8 @@ void loop() {
         //Serial.println(power);
         break;
       case 7:
-        boolean powerb;
-        ctrl->getPower(&powerb);
+        //boolean powerb;
+        //ctrl->getPower(&powerb);
         break;
     }
   }

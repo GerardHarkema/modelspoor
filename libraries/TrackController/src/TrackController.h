@@ -339,7 +339,9 @@ class TrackController {
      * reflects whether the call was successful.
      */
     boolean setPower(boolean power);
-    boolean getPower(boolean *power);
+#if 0
+    boolean getPower(boolean *power)
+#endif
     
     /**
      * Sets the direction of the given locomotive. Valid directions
