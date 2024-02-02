@@ -156,7 +156,7 @@ void setup() {
     topic_name));
 
   // create timer,
-  const unsigned int timer_timeout = 1000;
+  const unsigned int timer_timeout = 500/NUMBER_OF_TURNOUTS;
   RCCHECK(rclc_timer_init_default(
     &timer,
     &support,
@@ -166,7 +166,6 @@ void setup() {
   // create executor
   int number_of_executors = 2;
   RCCHECK(rclc_executor_init(&executor, &support.context, number_of_executors, &allocator));
-  // gaat dit hierinder goed?
   RCCHECK(rclc_executor_add_timer(&executor, &timer));
   RCCHECK(rclc_executor_add_subscription(&executor, &turnout_control_subscriber, &control, &wissel_control_callback, ON_NEW_DATA));
 

@@ -1,2 +1,2 @@
 #!/bin/bash
-ros2 launch gui main_launch.py
+ros2 launch railtrack_gui railtrack_launch.py
