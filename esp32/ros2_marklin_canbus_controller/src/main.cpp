@@ -31,7 +31,7 @@ TrackController *ctrl;
 TrackMessage message;
 
 rcl_publisher_t turnout_status_publisher;
-//rcl_publisher_t turnout_control_publisher;
+rcl_publisher_t turnout_control_publisher;
 rcl_subscription_t turnout_control_subscriber;
 
 rcl_publisher_t locomoitive_status_publisher;
@@ -45,7 +45,6 @@ rclc_executor_t executor;
 railway_interfaces__msg__TurnoutControl turnout_control;
 railway_interfaces__msg__LocomotiveControl locomotive_control;
 std_msgs__msg__Bool power_control;
-
 
 typedef enum{
     MM1, MM2, DCC, MFX
@@ -284,8 +283,8 @@ void setup() {
   // create turnout_control_subscriber
   sprintf(topic_name, "railtrack/turnout/control");
   // create turnout_status_publisher
-#if 0
-  RCCHECK(rclc_publisher_init_best_effort(
+#if 1
+  RCCHECK(rclc_publisher_init_default(
     &turnout_control_publisher,
     &node,
     ROSIDL_GET_MSG_TYPE_SUPPORT(railway_interfaces, msg, TurnoutControl),
@@ -330,7 +329,7 @@ void setup() {
     topic_name));
 
   // create timer,
-#define CYCLE_TIME    1000
+#define CYCLE_TIME    500
   unsigned int timer_timeout = CYCLE_TIME / NUMBER_OF_ACTIVE_TURNOUTS_C;
   RCCHECK(rclc_timer_init_default(
     &turnout_state_publisher_timer,
@@ -374,30 +373,12 @@ void loop() {
 
   //Serial.print("*");
   if(ctrl->receiveMessage(message)){
-#if 0
-    Serial.print("COMMAND: ");
-    Serial.print("0x");Serial.println(message.command, HEX);
-    Serial.print("DLC: ");
-    Serial.println(message.length, HEX);
-    Serial.print("DATA: ");
-
-    for (int i = 0; i < message.length; i++) {
-      Serial.print("0x");Serial.print(message.data[i], HEX);Serial.print(" ");
-    }
-    Serial.println("");
-    int adress;
-    adress =  (message.data[0] << 24) 
-            + (message.data[1] << 16) 
-            + (message.data[2] << 8) 
-            + message.data[3];
-    Serial.print("Adress (when used): 0x");Serial.println(adress, HEX);
-    
-
-  #endif
 
     int adress = (message.data[2] << 8) 
                  + message.data[3];
     int index;
+    bool straight;
+
     switch(message.command){
       case SYSTEM_BEFEHL:
         switch(message.data[4]){
@@ -410,34 +391,35 @@ void loop() {
           default:
             break;
         }
+        break;
       case ZUBEHOR_SCHALTEN:
           word position;
           //Serial.print("Adress: 0x");Serial.println(adress, HEX);
           position = message.data[4];
-
           int turnout_number;
           turnout_number = adress - TURNOUT_BASE_ADDRESS + 1;
           //Serial.println(turnout_number);
 
+          straight = position ? true : false;
+
+          //Serial.println(turnout_number);
+
+          if(lookupTurnoutIndex(turnout_number, &index)){
+            turnout_status[index].state = straight;
+            EEPROM.writeBool(index, straight);
+            EEPROM.commit();          
+          } 
+          if(message.data[5] && message.response){
           // Testen op M-Track turnout!!!!
-          for(int i = 0; i < NUMBER_OF_ACTIVE_TURNOUTS_M; i++){
-            if(active_turnouts_m[i] == turnout_number){
-              railway_interfaces__msg__TurnoutControl msg;
-              msg.number = turnout_number;
-              msg.state = position ? true : false;
-#if 0
-              RCSOFTCHECK(rcl_publish(&turnout_control_publisher, &msg, NULL));
-#endif
+            for(int i = 0; i < NUMBER_OF_ACTIVE_TURNOUTS_M; i++){
+              if(active_turnouts_m[i] == turnout_number){
+                railway_interfaces__msg__TurnoutControl msg;
+                msg.number = turnout_number;
+                msg.state = straight;
+                RCSOFTCHECK(rcl_publish(&turnout_control_publisher, &msg, NULL));
+              }
             }
           }
-#if 0
-          RCSOFTCHECK(rcl_publish(&turnout_control_publisher, &msg, NULL));
-          int index;
-          if(lookupTurnoutIndex(turnout_number, &index)){
-            turnout_status[index] = msg.state;
-          }     
-#endif
-  
         break;
       case LOC_GESCHWINDIGHEID:
           word speed;
@@ -455,8 +437,9 @@ void loop() {
           break;
       case LOC_FUNCTION:
         break;
-      default:
-        break;    }
+///      default:
+//        break;    
+    }
   }
 
   vTaskDelay(20);

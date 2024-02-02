@@ -1,6 +1,10 @@
 #!/bin/bash
 
-sudo apt install python3-colcon-common-extensions
+sudo apt install -y python3-colcon-common-extensions
+sudo apt-get install -y python3-rosdep
+sudo rosdep init
+rosdep update
+sudo -H apt-get install -y clang
 
 # Source the ROS 2 installation
 source /opt/ros/$ROS_DISTRO/setup.bash
@@ -23,7 +27,7 @@ sudo apt-get install python3-pip
 colcon build
 source install/local_setup.bash
 
-echo "source ~/microros_ws/install/setup.bash" > $HOME/.bashrc
+echo "source ~/microros_ws/install/setup.bash" >> $HOME/.bashrc
 
 ros2 run micro_ros_setup build_firmware.sh
 source install/local_setup.bash
