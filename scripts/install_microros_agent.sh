@@ -24,3 +24,14 @@ colcon build
 source install/local_setup.bash
 
 echo "source ~/microros_ws/install/setup.bash" > $HOME/.bashrc
+
+ros2 run micro_ros_setup build_firmware.sh
+source install/local_setup.bash
+
+# Download micro-ROS-Agent packages
+ros2 run micro_ros_setup create_agent_ws.sh
+
+# Build step
+ros2 run micro_ros_setup build_agent.sh
+source install/local_setup.bash
+

@@ -37,6 +37,61 @@ typedef struct{
   int green_pin;
 }TURNOUT_CONFIG;
 
+// For futher implementation
+typedef struct{
+  int pin;
+}TURNOUT_CONFIG_MAGNET;
+
+typedef struct{
+  int pin;
+  int red_servo_value;
+  int green_servo_value;
+}TURNOUT_CONFIG_SERVO;
+
+typedef struct{
+  int pin;
+  int red_analog_value;
+  int green_analog_value;
+}TURNOUT_CONFIG_ANALOG_OUT;
+
+typedef struct{
+  int pin;
+  bool negative_logic;
+}TURNOUT_CONFIG_DIGITAL_OUT;
+
+typedef enum{
+  MAGNET,
+  SERVO,
+  ANALOG_OUT,
+  DIGITAL_OUT
+}TURNOUT_TYPE;
+
+typedef union turnout
+{
+  TURNOUT_CONFIG_MAGNET magnet;
+  TURNOUT_CONFIG_SERVO servo;
+  TURNOUT_CONFIG_ANALOG_OUT analog_out;
+  TURNOUT_CONFIG_DIGITAL_OUT digital_out;
+}TURNOUT;
+
+typedef struct{
+  TURNOUT_TYPE type;
+  int turnout_number;
+  TURNOUT turnout;
+}TURNOUT_CONFIG_EX;
+
+/* Example of using TURNOUT_CONFIG_EX 
+TURNOUT_CONFIG_EX test;
+test.type = MAGNET;
+test.turnout_number = MAGNET;
+test.type = MAGNET;
+test.turnout.magnet.red_pin = 12;
+*/
+
+// End For futher implementation
+
+
+
 #include "turnout_config.h"
 
 IPAddress agent_ip(ip_address[0], ip_address[1], ip_address[2], ip_address[3]);
@@ -103,6 +158,9 @@ void timer_callback(rcl_timer_t * timer, int64_t last_call_time) {
 
 
 void setup() {
+
+
+
 
   Serial.begin(115200);
   Serial.println("Turnout-decoder started");
