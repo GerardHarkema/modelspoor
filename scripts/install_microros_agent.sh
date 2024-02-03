@@ -27,7 +27,7 @@ sudo apt-get install python3-pip
 colcon build
 source install/local_setup.bash
 
-echo "source ~/microros_ws/install/setup.bash" >> $HOME/.bashrc
+echo "source ~/microros_ws/install/local_setup.bash" >> $HOME/.bashrc
 
 ros2 run micro_ros_setup build_firmware.sh
 source install/local_setup.bash
