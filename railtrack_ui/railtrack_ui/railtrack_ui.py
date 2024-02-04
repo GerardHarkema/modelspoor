@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import math
 import threading
 from pathlib import Path
@@ -319,3 +320,5 @@ app.on_startup(lambda: threading.Thread(target=ros_main).start())
 ui_run.APP_IMPORT_STRING = f'{__name__}:app'  # ROS2 uses a non-standard module name, so we need to specify it here
 ui.run(uvicorn_reload_dirs=str(Path(__file__).parent.resolve()), favicon='🤖')
 ui.run(title='Dorst central station')
+
+

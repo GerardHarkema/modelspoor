@@ -1,0 +1,18 @@
+cmake_minimum_required(VERSION 3.10.2)  # CMake version in Ubuntu 18.04 LTS
+project(railtrack_ui VERSION 2.8.1)
+
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
+
+
+install(DIRECTORY launch/ DESTINATION share/${PROJECT_NAME}/launch)
+
+
+install(PROGRAMS
+        railtrack_ui/railtrack_ui.py
+        DESTINATION lib/${PROJECT_NAME})
+
+ament_package()
+
