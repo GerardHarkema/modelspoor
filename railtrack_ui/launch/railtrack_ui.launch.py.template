@@ -12,8 +12,8 @@ def generate_launch_description():
     # dit moet nog anders referentio t.o.v. package
 
 
-    config_file = "/home/gerard/modelspoor_ws/src/railtrack_ui/../config/track_config.json"
-    locomotive_images_path = "/home/gerard/modelspoor_ws/src/railtrack_ui/../config/locomotive_images"
+    config_file = <config_file>
+    locomotive_images_path = <locomotive_images_path>
 
     return LaunchDescription([
         Node(
