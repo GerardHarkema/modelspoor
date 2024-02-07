@@ -21,6 +21,7 @@
 #error This application is only avaible for Arduino Portenta, Arduino Nano RP2040 Connect, ESP32 Dev module and Wio Terminal
 #endif
 
+
 rcl_publisher_t turnout_status_publisher;
 rcl_subscription_t turnout_control_subscriber;
 rclc_executor_t executor;
@@ -93,8 +94,8 @@ test.turnout.magnet.red_pin = 12;
 
 
 //hoe werkt dit???
-TURNOUT_CONFIG_EX test[] = {{MAGNET, 10 ,{10, 11}} 
-//                           ,{SERVO, 12 ,{10, 100, 800}}
+TURNOUT_CONFIG_EX test[] = {{MAGNET, 10 ,10, 11} 
+                           ,{SERVO, 12 ,servo.pin = 10, servo.red_vale = 100, servo.green_value =  800}
                             };
 
 // End For futher implementation
@@ -122,7 +123,7 @@ bool lookupTurnoutIndex(int turnout_number, int *turnout_index){
 
 void error_loop(){
   while(1){
-    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+    digitalWrite(STATUS_LED, !digitalRead(STATUS_LED));
     delay(100);
   }
 }
@@ -168,14 +169,15 @@ void setup() {
   Serial.begin(115200);
   while (!Serial);
   delay(2000);
-  Serial.println("Turnout-decoder started");
+  Serial.print("Turnout-decoder started, node: ");
+  Serial.println(NODE_NAME);
 
   EEPROM.begin(NUMBER_OF_TURNOUTS);
 
   set_microros_wifi_transports(SSID, PASSWORD, agent_ip, (size_t)PORT);
 
-  pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, HIGH);
+  pinMode(STATUS_LED, OUTPUT);
+  digitalWrite(STATUS_LED, HIGH);
 
   for(int i=0; i < NUMBER_OF_TURNOUTS; i++){
     pinMode(turnout_config[i].green_pin, OUTPUT);

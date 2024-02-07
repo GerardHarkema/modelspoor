@@ -59,6 +59,12 @@ def main():
     node_name = turnout_config["Node_name"]
     line = "#define  NODE_NAME  \"" + node_name + "\"\n"
     header = header + line + "\n"
+    try:
+        status_led_pin = turnout_config["Status_led_pin"]
+        line = "#define  STATUS_LED  " + str(status_led_pin) + "\n"
+    except KeyError:
+        line = "#define  STATUS_LED  LED_BUILTIN\n"
+    header = header + line + "\n"
 
     turnouts = turnout_config["Turnouts"]
     line = "TURNOUT_CONFIG turnout_config[] = {"

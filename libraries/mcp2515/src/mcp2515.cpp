@@ -180,8 +180,21 @@ uint8_t can_init(uint8_t speed, bool loopback)
 	// Bitrate 250 kbps at 16 MHz
 	can_write_register(CNF3, (1<<PHSEG21));
 	can_write_register(CNF2, (1<<BTLMODE)|(1<<PHSEG11));
-	can_write_register(CNF1, (1<<BRP1)|(1<<BRP0));
 
+
+#ifdef MCP2515_XTAL_FREQ
+	#if MCP2515_XTAL_FREQ == XTAL_16MHZ
+		#pragma message "compiled for 16MHz XTAL"
+		can_write_register(CNF1, (1<<BRP1)|(1<<BRP0));
+	#elif MCP2515_XTAL_FREQ == XTAL_8MHZ
+		#pragma message "compiled for 8MHz XTAL"
+		can_write_register(CNF1, (1<<BRP0));
+	#else
+		#error message "invalid xtal frequency defined"
+	#endif
+#else
+	#error message "No xtal frequency defined"
+#endif
 	// activate interrupts
 	can_write_register(CANINTE, (1<<RX1IE)|(1<<RX0IE));
 
