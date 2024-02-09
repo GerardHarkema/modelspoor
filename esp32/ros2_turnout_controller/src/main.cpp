@@ -32,15 +32,7 @@ rclc_support_t support;
 rcl_allocator_t allocator;
 rcl_node_t node;
 
-typedef struct{
-  int turnout_number;
-  int red_pin;
-  int green_pin;
-}TURNOUT_CONFIG;
 
-
-#if 0
-// For futher implementation
 typedef struct{
   int red_pin;
   int green_pin;
@@ -70,35 +62,28 @@ typedef enum{
   DIGITAL_OUT
 }TURNOUT_TYPE;
 
-typedef union turnout
-{
-  TURNOUT_CONFIG_MAGNET magnet;
-  TURNOUT_CONFIG_SERVO servo;
-  TURNOUT_CONFIG_ANALOG_OUT analog_out;
-  TURNOUT_CONFIG_DIGITAL_OUT digital_out;
-}TURNOUT;
-
 typedef struct{
   TURNOUT_TYPE type;
   int turnout_number;
-  TURNOUT turnout;
-}TURNOUT_CONFIG_EX;
+  union{
+    TURNOUT_CONFIG_MAGNET magnet;
+    TURNOUT_CONFIG_SERVO servo;
+    TURNOUT_CONFIG_ANALOG_OUT analog_out;
+    TURNOUT_CONFIG_DIGITAL_OUT digital_out;    
+  };
 
-/* Example of using TURNOUT_CONFIG_EX 
-TURNOUT_CONFIG_EX test;
-test.type = MAGNET;
-test.turnout_number = MAGNET;
-test.type = MAGNET;
-test.turnout.magnet.red_pin = 12;
-*/
+  //TURNOUT turnout;
+}TURNOUT_CONFIG;
 
+#if 0
+// For further implementation
+TURNOUT_CONFIG_EX test[] = {
+    {MAGNET, 10, {.magnet = {10, 11}}},
+    {SERVO, 13, {.servo = {13, 178, 12}}},
+    {ANALOG_OUT, 15, {.analog_out = {15, 16}}},
+    {DIGITAL_OUT, 20, {.digital_out = {20, true}}},
+};
 
-//hoe werkt dit???
-TURNOUT_CONFIG_EX test[] = {{MAGNET, 10 ,10, 11} 
-                           ,{SERVO, 12 ,servo.pin = 10, servo.red_vale = 100, servo.green_value =  800}
-                            };
-
-// End For futher implementation
 #endif
 
 #include "turnout_config.h"
@@ -137,11 +122,22 @@ void turnout_control_callback(const void * msgin)
   //Serial.println(control->number);
   if(lookupTurnoutIndex(control->number, &turnout_index)){
       //Serial.println("set turnout");
-      uint pin = control->state ? turnout_config[turnout_index].green_pin : turnout_config[turnout_index].red_pin;
+      uint pin;
+      switch(turnout_config[turnout_index].type){
+        case MAGNET:
+          pin = control->state ? turnout_config[turnout_index].magnet.green_pin : turnout_config[turnout_index].magnet.red_pin;
+          digitalWrite(pin, HIGH);  
+          delay(200);
+          digitalWrite(pin, LOW);  
+          break;
+        case SERVO:
+          break;
+        case ANALOG_OUT:
+          break;
+        case DIGITAL_OUT:
+          break;
+      }
 
-      digitalWrite(pin, HIGH);  
-      delay(200);
-      digitalWrite(pin, LOW);  
 
       turnout_status[turnout_index].state = control->state ? true : false;
       EEPROM.writeBool(turnout_index, turnout_status[turnout_index].state);
@@ -180,11 +176,22 @@ void setup() {
   digitalWrite(STATUS_LED, HIGH);
 
   for(int i=0; i < NUMBER_OF_TURNOUTS; i++){
-    pinMode(turnout_config[i].green_pin, OUTPUT);
-    digitalWrite(turnout_config[i].green_pin, LOW);
 
-    pinMode(turnout_config[i].red_pin, OUTPUT);
-    digitalWrite(turnout_config[i].red_pin, LOW);
+      switch(turnout_config[i].type){
+        case MAGNET:
+          pinMode(turnout_config[i].magnet.green_pin, OUTPUT);
+          digitalWrite(turnout_config[i].magnet.green_pin, LOW);
+
+          pinMode(turnout_config[i].magnet.red_pin, OUTPUT);
+          digitalWrite(turnout_config[i].magnet.red_pin, LOW);
+          break;
+        case SERVO:
+          break;
+        case ANALOG_OUT:
+          break;
+        case DIGITAL_OUT:
+          break;
+      }
 
     turnout_status[i].number = turnout_config[i].turnout_number;
     turnout_status[i].state = EEPROM.readBool(i);

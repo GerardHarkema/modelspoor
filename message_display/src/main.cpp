@@ -48,6 +48,13 @@ Arduino_GFX *gfx = new Arduino_ILI9341(bus, DF_GFX_RST, 0 /* rotation */, false 
  * End of Arduino_GFX setting
  ******************************************************************************/
 
+
+#define SCREEN_WIDTH 240
+#define SCREEN_HEIGHT 320
+#define FONT_SIZE 2
+#define SCROLL_SPEED 1
+
+
 void setup(void)
 {
   Serial.begin(115200);
@@ -76,16 +83,47 @@ void setup(void)
   gfx->setTextSize(2);
   gfx->println("Hello World!");
 
+  //gfx->setScrollTextArea(40,50,120,120);
+
   //delay(5000); // 5 seconds
 }
 int i;
 
 void loop()
 {
+  #if 0
+  gfx->fillScreen(0);
   //gfx->setCursor(random(gfx->width()), random(gfx->height()));
   //gfx->setTextColor(random(0xffff), random(0xffff));
   //gfx->setTextSize(random(6) /* x scale */, random(6) /* y scale */, random(2) /* pixel_margin */);
   gfx->print("Hello World!"); gfx->println(i++);
 
   delay(1000); // 1 second
+  #else
+
+    // Clear the display
+  gfx->fillScreen(0);
+
+  // Draw your content here
+  gfx->setTextSize(2);
+  //gfx->setTextColor(ILI9341_WHITE);
+  gfx->setCursor(10, 0);
+
+  // Vertical scrolling
+  static int scrollPosition = 0;
+  scrollPosition += SCROLL_SPEED;
+
+  // Draw text at the new scrolled position
+  gfx->print("Hello, World!");
+  gfx->setCursor(10, SCREEN_HEIGHT - scrollPosition);
+  gfx->print("Vertical Scroll");
+
+  // If the scroll position is greater than the screen height, reset it
+  if (scrollPosition >= SCREEN_HEIGHT) {
+    scrollPosition = 0;
+  }
+
+  // Pause for a short duration
+  delay(50);
+  #endif
 }

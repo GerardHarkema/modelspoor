@@ -9,6 +9,39 @@ except ImportError:
     env.Execute("$PYTHONEXE -m pip install easygui")
     import easygui
 
+
+def create_turnout_config_struct_line(turnout):
+    if turnout["type"] == "magnet":
+        line = "\t\t{MAGNET, " + str(turnout["number"]) + ', '
+        line = line + "{.magnet = {"
+        line = line + str(turnout["red_pin"]) + ', '
+        line = line + str(turnout["green_pin"])+ "}}},\n"
+    elif turnout["type"] == "servo":
+        line = "\t\t{SERVO, " + str(turnout["number"]) + ', '
+        line = line + "{.servo = {"
+        line = line + str(turnout["pin"]) + ', '
+        line = line + str(turnout["green_value"]) + ', '
+        line = line + str(turnout["red_value"])+ "}}},\n"
+    elif turnout["type"] == "analog_out":
+        line = "\t\t{ANALOG_OUT, " + str(turnout["number"]) + ', '
+        line = line + "{.analog_out = {"
+        line = line + str(turnout["pin"]) + ', '
+        line = line + str(turnout["green_value"]) + ', '
+        line = line + str(turnout["red_value"])+ "}}},\n"
+    elif turnout["type"] == "digital_out":
+        line = "\t\t{DIGITAL_OUT, " + str(turnout["number"]) + ', '
+        line = line + "{.digital_out = {"
+        line = line + str(turnout["pin"]) + ', '
+        if turnout["negative_logic"]:
+            line = line + "true}}},\n"
+        else:
+            line = line + "false}}},\n"
+
+    else:
+        print("Invalid turnout type defined")
+    return line
+
+
 def main():
     agent_config_file = '../../config/micro_ros_agent_config.json'
     with open(agent_config_file, 'r', encoding='utf-8') as f:
@@ -68,14 +101,10 @@ def main():
 
     turnouts = turnout_config["Turnouts"]
     line = "TURNOUT_CONFIG turnout_config[] = {"
-    for i in range(len(turnouts) - 1):
-        line = line + "{" + str(turnouts[i]["number"]) + ', '
-        line = line + str(turnouts[i]["red_pin"]) + ', '
-        line = line + str(turnouts[i]["green_pin"])+ "},"
-
-    line = line + "{" + str(turnouts[len(turnouts) - 1]["number"]) + ', '
-    line = line + str(turnouts[len(turnouts) - 1]["red_pin"]) + ', '
-    line = line + str(turnouts[len(turnouts) - 1]["green_pin"]) + "}};\n"
+    header = header + line + "\n"
+    for turnout in turnouts:
+        header = header + create_turnout_config_struct_line(turnout)
+    line = "\t\t};\n"
     header = header + line
     line = "#define  NUMBER_OF_TURNOUTS  " + str(len(turnouts)) + "\n"
     header = header + line + "\n"
