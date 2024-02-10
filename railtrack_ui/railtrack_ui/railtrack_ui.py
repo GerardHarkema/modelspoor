@@ -21,208 +21,125 @@ from railway_interfaces.msg import LocomotiveState
 from railway_interfaces.msg import TurnoutControl  
 from railway_interfaces.msg import TurnoutState  
 
-#from turnout_control import turnout_control
+from turnout_control import turnout_control
+from locomotive_control import locomotive_control
+
+class rio_class():
+    def __init__(self):
+        self.xmin = 0;
+        self.xmax = 0;
+        self.ymin = 0;
+        self.ymax = 0;
+
+class point_class():
+    def __init__(self):
+        self.x = 0;
+        self.y = 0;
 
 class turnout_control_on_layout(Node):
-    def __init__(self, turnout, image):
-        print(turnout)
-        try:
-            layout_positions = turnout["layout_positions"]
-            x = layout_positions["position"]["x"]
-            y = layout_positions["position"]["y"]
-            width = layout_positions["size"]["width"]
-            height = layout_positions["size"]["height"]
-            color = 'SkyBlue'
-            image.content += f'<circle cx="{x}" cy="{y}" r="15" fill="none" stroke="{color}" stroke-width="4" />'
+    def __init__(self, turnout, image, turnout_control_publisher):
+        self.image = image
+        self.rios =[]
+        self.red_contents = []
+        self.green_contents = []
+        self.status = False
 
-        except:
-            pass
-
-
-class railtracklayout_control(Node):
-    def __init__(self, turnouts, railtracklayout_image_filemage):
-        self.turnouts = []
-        #self.layout = ui.image(railtracklayout_image_filemage).classes('w-128')
-        self.layout = ui.interactive_image(railtracklayout_image_filemage, on_mouse=self.mouse_handler, events=['mousedown', 'mouseup'], cross=True)
-        for turnout in turnouts["c-type"]:
-            tc = turnout_control_on_layout(turnout, self.layout)
-            self.turnouts.append(tc)
-
-        for turnout in turnouts["m-type"]:
-            tc = turnout_control_on_layout(turnout, self.layout)
-            self.turnouts.append(tc)
-
-    def mouse_handler(self, e: events.MouseEventArguments):
-        color = 'SkyBlue' if e.type == 'mousedown' else 'SteelBlue'
-        #self.layout.content += f'<circle cx="{e.image_x}" cy="{e.image_y}" r="15" fill="none" stroke="{color}" stroke-width="4" />'
-        ui.notify(f'{e.type} at ({e.image_x:.1f}, {e.image_y:.1f})')
-
-
-class turnout_control(Node):
-
-    def __init__(self, turnout_number, control_publisher):
         self.turnout_msg = TurnoutControl()
-        self.turnout_msg.number = turnout_number
-        self.control_publisher = control_publisher
+        self.turnout_msg.number = turnout["number"]
+        self.control_publisher = turnout_control_publisher
 
-        self.turnout_number = turnout_number
-        with ui.card():
-            text = 'Turnout ' + str(self.turnout_number)
-            ui.label(text)
+        try:
+            for layout_position in turnout["layout_positions"]:
+                x = layout_position["position"]["x"]
+                y = layout_position["position"]["y"]
+                radius = layout_position["size"]["radius"]
+                
+                color = 'Red'
+                #red_content = image_content()
+                red_content = f'<circle cx="{x}" cy="{y}" r="{radius}" fill="none" stroke="{color}" stroke-width="4" />'
+                self.red_contents.append(red_content)
+                
+                color = 'Green'
+                #green_content = image_content()
+                green_content = f'<circle cx="{x}" cy="{y}" r="{radius}" fill="none" stroke="{color}" stroke-width="4" />'
+                self.green_contents.append(green_content)
 
-            with ui.grid(columns=3):
-                self.green_button = ui.button('Green', on_click=lambda: self.set_turnout(True)).classes('drop-shadow bg-green')
-                self.rood_button = ui.button('Red', on_click=lambda: self.set_turnout(False)).classes('drop-shadow bg-red')
-                self.led = ui.icon('fiber_manual_record', size='3em').classes('drop-shadow text-green')
-
-    def set_turnout(self, control) -> None:
-        self.turnout_msg.state = control
+                self.image.content += red_content
+                
+                rio = rio_class()
+                rio.xmin = x - radius/2
+                rio.xmax = x + radius/2
+                rio.ymin = y - radius/2
+                rio.ymax = y + radius/2
+                self.rios.append(rio)
+                #print("Added")
+        except:
+            #print("ERROR")
+            pass
+    
+    def checkPointInRio(self, rio, point):
+        if point.x >= rio.xmin and point.x <= rio.xmax:
+            if point.y >= rio.ymin and point.y <= rio.ymax:
+                return True
+        return False
+    
+    def handleEvent(self, point):
+        found = False
+        for rio in self.rios:
+            found = self.checkPointInRio(rio, point)
+            if found:
+                break
+        if not found:
+            return
+        self.turnout_msg.state = not self.status
         self.control_publisher.publish(self.turnout_msg)
         notify_text = "Set Turnout " + str(self.turnout_msg.number)
-        if(control):
+        if(self.turnout_msg.state):
             notify_text = notify_text + ": Green"
         else:
             notify_text = notify_text + ": Red"
         ui.notify(notify_text)
-    def set_status_indicator(self, status) -> None:
-        #print("set_status_indicator")
+
+    def set_status_indicator(self, status):
+
         if(self.turnout_msg.number == status.number):
             if status.state:
-                #print("set green")
-                self.led.classes('text-green', remove='text-red')
-                text = 'Set turnout ' + str(self.turnout_number)+ ": green" 
+                for content in self.green_contents:
+                    self.image.content += content
             else:
-                #print("set red")
-                self.led.classes('text-red', remove='text-green')
-                text = 'Set turnout ' + str(self.turnout_number) + ": red" 
-
-class locomotive_control(Node):
-
-    def __init__(self, locomotive_descr, control_publisher, locomotive_images_path):
-        #super().__init__('railtrackgui')
-
-        self.locomotive_descr = locomotive_descr
-        self.control_publisher = control_publisher;
-        self.locomotive_msg = LocomotiveControl()
-        match locomotive_descr['protocol']:
-            case "MM1":
-                self.locomotive_msg.address = locomotive_descr['address']
-                self.number_of_functions = 4
-            case "MM2":
-                self.locomotive_msg.address = locomotive_descr['address']
-                self.number_of_functions = 4
-            case "DCC":
-                self.locomotive_msg.address = locomotive_descr['address'] + 0xC000
-                self.number_of_functions = 16
-            case "MFX":
-                self.locomotive_msg.address = locomotive_descr['address'] + 0x4000
-                self.number_of_functions = 32
-            case _:
-                pass
-        self.speed = 0
-        self.max_speed = 1000;
-        self.max_speed = locomotive_descr['max_speed']
-        self.increment_speed_step = 100
-        self.increment_speed_step = locomotive_descr['increment_speed_step']
-        self.decrement_speed_step = 100
-        self.decrement_speed_step = locomotive_descr['decrement_speed_step']
-
-        with ui.card():
-            text = str(locomotive_descr['type']) + ': ' + str(locomotive_descr['name'])
-            ui.label(text)
-            image = locomotive_images_path + "/" + locomotive_descr["image"]
-
-            ui.image(image).classes('w-64')
-            with ui.grid(columns=3):
-                self.decrement_button = ui.button(icon = 'remove', on_click=lambda:self.set_decrement_speed()) 
-                self.speed_slider = ui.slider(min=0, max=1000, value=50, on_change=lambda:self.set_speed())
-                self.speed_slider.on(type = 'update:model-valuex', leading_events = False, trailing_events = False, throttle = 5.0) 
-                self.increment_button = ui.button(icon = 'add', on_click=lambda:self.set_increment_speed()) 
-                self.direction_button = ui.button('FORWARD', on_click=lambda:self.set_direction()).classes('drop-shadow bg-red')
-                self.stop_button = ui.button('STOP', on_click=lambda:self.stop())
-
-                with ui.dialog() as dialog, ui.card():
-                    ui.label('Functions')
-                    with ui.grid(columns=4):
-                        set_functions = [partial(self.set_function, i) for i in range(self.number_of_functions)]
-                        for i, f in enumerate(set_functions): 
-                            text = "F" + str(i+1) + " " 
-                            button = ui.button(text, icon = 'home', on_click=f)             
-                            # see icons https://fonts.google.com/icons
-                    ui.button('Close', on_click=dialog.close)
-                ui.button('Functions', on_click=dialog.open)
-    
-
-    
-    def set_speed(self):
-        self.locomotive_msg.command = LocomotiveControl().__class__.SET_SPEED
-        self.locomotive_msg.speed = self.speed_slider.value
-        self.control_publisher.publish(self.locomotive_msg)
-        notify_text = "Set Speed, Protocol: " + self.locomotive_descr['protocol'] \
-                    + ", Loc ID: " + str(self.locomotive_descr['address'])         \
-                    + ", Speed: " + str(self.speed_slider.value)
-        ui.notify(notify_text)                 
+                for content in self.red_contents:
+                    self.image.content += content 
         pass
 
-    def set_increment_speed(self):
-        new_speed = self.speed + self.increment_speed_step
-        if new_speed > self.max_speed:
-            new_speed = self.max_speed
-        self.speed = new_speed
-        self.speed_slider.value = self.speed  
-        pass
+class railtracklayout_control(Node):
+    def __init__(self, turnouts, railtracklayout_image_filemage, turnout_control_publisher):
+        self.turnout_control_publisher = turnout_control_publisher;
+        self.turnouts = []
+        self.layout = ui.interactive_image(railtracklayout_image_filemage, on_mouse=self.mouse_handler, events=['mousedown', 'mouseup'], cross=True)
+        for turnout in turnouts["c-type"]:
+            tc = turnout_control_on_layout(turnout, self.layout, self.turnout_control_publisher)
+            self.turnouts.append(tc)
+        for turnout in turnouts["m-type"]:
+            tc = turnout_control_on_layout(turnout, self.layout, self.turnout_control_publisher)
+            self.turnouts.append(tc)
+        self.notify_mouse_events = False
+        self.switch = ui.switch('Show mouse click locations').bind_value(self, 'notify_mouse_events')    
 
-    def set_decrement_speed(self):
-        new_speed = self.speed - self.decrement_speed_step
-        if new_speed < 0:
-            new_speed = 0
-        self.speed = new_speed
-        self.speed_slider.value = self.speed          
-        pass
+    def mouse_handler(self, e: events.MouseEventArguments):
+        if e.type == 'mousedown':
+            for turnout in self.turnouts:
+                point = point_class()
+                point.x = e.image_x
+                point.y = e.image_y
+                turnout.handleEvent(point)
+            if self.notify_mouse_events:
+                ui.notify(f'{e.type} at ({e.image_x:.1f}, {e.image_y:.1f})')
+                
+    def set_status_indicator(self, status):
+        for turnout in self.turnouts:
+            turnout.set_status_indicator(status)
 
-    def set_direction(self):
-        #print(self.locomotive_msg)
-        self.locomotive_msg.command = LocomotiveControl().__class__.SET_DIRECTION
-        self.locomotive_msg.speed = 0
-        if(self.direction_button.text == 'FORWARD'):
-            self.direction_button.text ='REVERSE'
-            self.locomotive_msg.direction = LocomotiveControl().__class__.DIRECTION_FORWARD
-        else:
-            self.direction_button.text ='FORWARD'
-            self.locomotive_msg.direction = LocomotiveControl().__class__.DIRECTION_REVERSE
-        self.control_publisher.publish(self.locomotive_msg)
-        notify_text = "Set Direction, Protocol: " + self.locomotive_descr['protocol'] \
-            + ", Loc ID: " + str(self.locomotive_descr['address'])         \
-            + ", Direction: " + self.direction_button.text
-        ui.notify(notify_text)
-        #disable events
-        self.speed_slider.disable()
-        self.speed_slider.value = 0
-        self.speed_slider.enable()
-        pass
 
-    def stop(self):
-        self.speed = 0
-        self.speed_slider.value = self.speed
-        pass
-
-    def set_function(self, function_index):
-        notify_text = "Set Function: " + str(function_index)
-        ui.notify(notify_text) 
-        pass
-
-    def set_status(self, status) -> None:
-        #print("set_status_indicator")
-        if(self.locomotive_msg.address == status.address):
-            #print(status)
-            self.speed_slider.disable()
-            self.speed_slider.value = status.speed
-            self.speed_slider.enable()
-            if status.direction == LocomotiveState().__class__.DIRECTION_FORWARD:
-                self.direction_button.text ='REVERSE'
-            else:
-                self.direction_button.text ='FORWARD'
-            pass
 
 class RailTrackNode(Node):
 
@@ -289,7 +206,7 @@ class RailTrackNode(Node):
                             self.locomotivesui.append(locomotive)
                 with ui.tab_panel(tracklayouts_tab):
                     railtracklayout_image_file = self.railtracklayout_images_path + "/"+ self.track_config["railtrack_layout_image"]
-                    self.track_control = railtracklayout_control(self.track_config["Turnouts"], railtracklayout_image_file)
+                    self.track_control = railtracklayout_control(self.track_config["Turnouts"], railtracklayout_image_file, self.turnout_control_publisher)
                     pass
             self.power_button = ui.button('STOP', on_click=lambda:self.power()).classes('drop-shadow bg-red')
             self.active = ui.icon('fiber_manual_record', size='3em').classes('drop-shadow text-green')
@@ -298,6 +215,7 @@ class RailTrackNode(Node):
         self.power_state = False
 
     def turnout_status_callback(self, status):
+        self.track_control.set_status_indicator(status)
         for turnout in self.turnoutsui:
             turnout.set_status_indicator(status)
 

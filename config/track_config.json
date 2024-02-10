@@ -30,6 +30,16 @@
       "max_speed" : 1000,
       "decrement_speed_step" : 50,
       "increment_speed_step" : 50
+    },
+    {
+      "name": "NS6505HDG",
+      "type": "Diesel Locomotief",
+      "image": "NS_6505_DHG.jpg",
+      "protocol": "MM1",
+      "address": 78,
+      "max_speed" : 1000,
+      "decrement_speed_step" : 50,
+      "increment_speed_step" : 50
     }
   ],
   "Turnouts": {
@@ -43,8 +53,7 @@
                 "y" :150
               },
               "size" :{
-                "width" :10,
-                "height" :10
+                "radius" :10
               }
             },
             {
@@ -53,8 +62,7 @@
                 "y" :250
               },
               "size" :{
-                "width" :10,
-                "height" :10
+                "radius" :10
               }
             }          ]
       },
