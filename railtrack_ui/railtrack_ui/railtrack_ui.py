@@ -10,7 +10,7 @@ import json
 from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
 
-from nicegui import Client, app, ui, ui_run
+from nicegui import Client, app, ui, ui_run, events
 from functools import partial
 
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
@@ -20,6 +20,42 @@ from railway_interfaces.msg import LocomotiveControl
 from railway_interfaces.msg import LocomotiveState  
 from railway_interfaces.msg import TurnoutControl  
 from railway_interfaces.msg import TurnoutState  
+
+#from turnout_control import turnout_control
+
+class turnout_control_on_layout(Node):
+    def __init__(self, turnout, image):
+        print(turnout)
+        try:
+            layout_positions = turnout["layout_positions"]
+            x = layout_positions["position"]["x"]
+            y = layout_positions["position"]["y"]
+            width = layout_positions["size"]["width"]
+            height = layout_positions["size"]["height"]
+            color = 'SkyBlue'
+            image.content += f'<circle cx="{x}" cy="{y}" r="15" fill="none" stroke="{color}" stroke-width="4" />'
+
+        except:
+            pass
+
+
+class railtracklayout_control(Node):
+    def __init__(self, turnouts, railtracklayout_image_filemage):
+        self.turnouts = []
+        #self.layout = ui.image(railtracklayout_image_filemage).classes('w-128')
+        self.layout = ui.interactive_image(railtracklayout_image_filemage, on_mouse=self.mouse_handler, events=['mousedown', 'mouseup'], cross=True)
+        for turnout in turnouts["c-type"]:
+            tc = turnout_control_on_layout(turnout, self.layout)
+            self.turnouts.append(tc)
+
+        for turnout in turnouts["m-type"]:
+            tc = turnout_control_on_layout(turnout, self.layout)
+            self.turnouts.append(tc)
+
+    def mouse_handler(self, e: events.MouseEventArguments):
+        color = 'SkyBlue' if e.type == 'mousedown' else 'SteelBlue'
+        #self.layout.content += f'<circle cx="{e.image_x}" cy="{e.image_y}" r="15" fill="none" stroke="{color}" stroke-width="4" />'
+        ui.notify(f'{e.type} at ({e.image_x:.1f}, {e.image_y:.1f})')
 
 
 class turnout_control(Node):
@@ -197,6 +233,8 @@ class RailTrackNode(Node):
         self.config_file = self.get_parameter("config_file").get_parameter_value().string_value
         self.declare_parameter("locomotive_images_path", "");
         self.locomotive_images_path = self.get_parameter("locomotive_images_path").get_parameter_value().string_value
+        self.declare_parameter("railtracklayout_images_path", "");
+        self.railtracklayout_images_path = self.get_parameter("railtracklayout_images_path").get_parameter_value().string_value
 
         with open(self.config_file, 'r', encoding='utf-8') as f:
             self.track_config = json.load(f)
@@ -226,16 +264,22 @@ class RailTrackNode(Node):
 
         self.turnoutsui= []
         self.locomotivesui = []
+        self.turnouts = []
         with Client.auto_index_client:
             with ui.tabs().classes('w-full') as tabs:
                 locomotives_tab = ui.tab('Locomotives')
                 turnouts_tab = ui.tab('Turnouts')
+                tracklayouts_tab = ui.tab('Track Layout')
             with ui.tab_panels(tabs, value=turnouts_tab).classes('w-full'):
                 with ui.tab_panel(turnouts_tab):
                     with ui.grid(columns=3):
-                        turnouts = self.track_config["Turnouts"]["c-type"] + self.track_config["Turnouts"]["m-type"]
-                        turnouts.sort()
-                        for turnout in turnouts:
+
+                        for turnout in self.track_config["Turnouts"]["c-type"]:
+                            self.turnouts.append(turnout["number"])   
+                        for turnout in self.track_config["Turnouts"]["m-type"]:
+                            self.turnouts.append(turnout["number"])   
+                        self.turnouts.sort()
+                        for turnout in self.turnouts:
                             tc = turnout_control(turnout, self.turnout_control_publisher)
                             self.turnoutsui.append(tc)
                 with ui.tab_panel(locomotives_tab):
@@ -243,6 +287,10 @@ class RailTrackNode(Node):
                         for loc in self.track_config['Locomotives']:
                             locomotive = locomotive_control(loc, self.locomotive_control_publisher, self.locomotive_images_path)
                             self.locomotivesui.append(locomotive)
+                with ui.tab_panel(tracklayouts_tab):
+                    railtracklayout_image_file = self.railtracklayout_images_path + "/"+ self.track_config["railtrack_layout_image"]
+                    self.track_control = railtracklayout_control(self.track_config["Turnouts"], railtracklayout_image_file)
+                    pass
             self.power_button = ui.button('STOP', on_click=lambda:self.power()).classes('drop-shadow bg-red')
             self.active = ui.icon('fiber_manual_record', size='3em').classes('drop-shadow text-green')
             self.active_status = False;

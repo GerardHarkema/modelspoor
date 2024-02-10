@@ -40,14 +40,14 @@ typedef struct{
 
 typedef struct{
   int pin;
-  int red_servo_value;
-  int green_servo_value;
+  int red_value;
+  int green_value;
 }TURNOUT_CONFIG_SERVO;
 
 typedef struct{
   int pin;
-  int red_analog_value;
-  int green_analog_value;
+  int red_value;
+  int green_value;
 }TURNOUT_CONFIG_ANALOG_OUT;
 
 typedef struct{
@@ -123,6 +123,8 @@ void turnout_control_callback(const void * msgin)
   if(lookupTurnoutIndex(control->number, &turnout_index)){
       //Serial.println("set turnout");
       uint pin;
+      bool state;
+      int pwm_value, analog_value;
       switch(turnout_config[turnout_index].type){
         case MAGNET:
           pin = control->state ? turnout_config[turnout_index].magnet.green_pin : turnout_config[turnout_index].magnet.red_pin;
@@ -131,10 +133,23 @@ void turnout_control_callback(const void * msgin)
           digitalWrite(pin, LOW);  
           break;
         case SERVO:
+          pwm_value = control->state ? 
+                      turnout_config[turnout_index].servo.green_value :
+                      turnout_config[turnout_index].servo.red_value;
+          analogWrite(turnout_config[turnout_index].servo.pin, pwm_value);
           break;
         case ANALOG_OUT:
+          analog_value = control->state ? 
+                      turnout_config[turnout_index].analog_out.green_value :
+                      turnout_config[turnout_index].analog_out.red_value;        
+          analogWrite(turnout_config[turnout_index].analog_out.pin, analog_value);
           break;
         case DIGITAL_OUT:
+          if(turnout_config[turnout_index].digital_out.negative_logic)
+             state = control->state ? false: true;
+          else
+             state = control->state ? true: false; 
+          digitalWrite(turnout_config[turnout_index].digital_out.pin, state); 
           break;
       }
 
@@ -176,25 +191,42 @@ void setup() {
   digitalWrite(STATUS_LED, HIGH);
 
   for(int i=0; i < NUMBER_OF_TURNOUTS; i++){
-
-      switch(turnout_config[i].type){
-        case MAGNET:
-          pinMode(turnout_config[i].magnet.green_pin, OUTPUT);
-          digitalWrite(turnout_config[i].magnet.green_pin, LOW);
-
-          pinMode(turnout_config[i].magnet.red_pin, OUTPUT);
-          digitalWrite(turnout_config[i].magnet.red_pin, LOW);
-          break;
-        case SERVO:
-          break;
-        case ANALOG_OUT:
-          break;
-        case DIGITAL_OUT:
-          break;
-      }
-
     turnout_status[i].number = turnout_config[i].turnout_number;
     turnout_status[i].state = EEPROM.readBool(i);
+    bool state;
+    int analog_value;
+    int pwm_value;
+    switch(turnout_config[i].type){
+      case MAGNET:
+        pinMode(turnout_config[i].magnet.green_pin, OUTPUT);
+        digitalWrite(turnout_config[i].magnet.green_pin, LOW);
+
+        pinMode(turnout_config[i].magnet.red_pin, OUTPUT);
+        digitalWrite(turnout_config[i].magnet.red_pin, LOW);
+        break;
+      case SERVO:
+        pwm_value = turnout_status[i].state ? 
+                    turnout_config[i].servo.green_value :
+                    turnout_config[i].servo.red_value;
+        analogWrite(turnout_config[i].servo.pin, pwm_value);
+        break;
+      case ANALOG_OUT:
+        analog_value = turnout_status[i].state ? 
+                    turnout_config[i].analog_out.green_value :
+                    turnout_config[i].analog_out.red_value;        
+        analogWrite(turnout_config[i].analog_out.pin, analog_value);
+        break;
+      case DIGITAL_OUT:
+        pinMode(turnout_config[i].digital_out.pin, OUTPUT);
+        if(turnout_config[i].digital_out.negative_logic)
+            state = turnout_status[i].state ? false: true;
+        else
+            state = turnout_status[i].state ? true: false; 
+        digitalWrite(turnout_config[i].digital_out.pin, state); 
+        break;
+    }
+
+
   }
 
   allocator = rcl_get_default_allocator();

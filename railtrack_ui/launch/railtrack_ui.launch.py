@@ -10,10 +10,12 @@ import os
 def generate_launch_description():
 
     # dit moet nog anders referentio t.o.v. package
+    # wijzig niet de python file, maar de template
 
 
     config_file = "/home/gerard/modelspoor_ws/src/railtrack_ui/../config/track_config.json"
     locomotive_images_path = "/home/gerard/modelspoor_ws/src/railtrack_ui/../config/locomotive_images"
+    railtracklayout_images_path = "/home/gerard/modelspoor_ws/src/railtrack_ui/../config/railtracklayout_images"
 
     return LaunchDescription([
         Node(
@@ -21,7 +23,8 @@ def generate_launch_description():
             executable='railtrack_ui.py',
             output='screen',
             parameters=[{'config_file': config_file},
-                        {"locomotive_images_path": locomotive_images_path}
+                        {"locomotive_images_path": locomotive_images_path},
+                        {"railtracklayout_images_path": railtracklayout_images_path}
                         ],
         ),
     ])
