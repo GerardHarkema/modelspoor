@@ -22,7 +22,7 @@
       "increment_speed_step" : 50
     },
     {
-      "name": "Hondekop, mat 65",
+      "name": "Hondekop, mat 65, BeNeLux",
       "type": "Treinstel",
       "image": "hondekop.jpg",
       "protocol": "MFX",

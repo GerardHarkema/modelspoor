@@ -61,8 +61,8 @@ header = header + line + "\n"
 turnouts = track_config["Turnouts"]["c-type"]
 line = "unsigned short int active_turnouts_c[] = {"
 for i in range(len(turnouts)-1):
-    line = line + str(turnouts[i]) + ", "
-line  = line + str(turnouts[len(turnouts)-1]) + "};\n"
+    line = line + str(turnouts[i]["number"]) + ", "
+line  = line + str(turnouts[len(turnouts)-1]["number"]) + "};\n"
 header = header + line
 line = "#define  NUMBER_OF_ACTIVE_TURNOUTS_C   " + str(len(turnouts)) + "\n"
 header = header + line  + "\n"
@@ -70,8 +70,8 @@ header = header + line  + "\n"
 turnouts = track_config["Turnouts"]["m-type"]
 line = "unsigned short int active_turnouts_m[] = {"
 for i in range(len(turnouts)-1):
-    line = line + str(turnouts[i]) + ", "
-line  = line + str(turnouts[len(turnouts)-1]) + "};\n"
+    line = line + str(turnouts[i]["number"]) + ", "
+line  = line + str(turnouts[len(turnouts)-1]["number"]) + "};\n"
 header = header + line
 line = "#define  NUMBER_OF_ACTIVE_TURNOUTS_M   " + str(len(turnouts)) + "\n"
 header = header + line + "\n"

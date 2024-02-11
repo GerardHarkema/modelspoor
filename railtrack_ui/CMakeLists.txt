@@ -19,6 +19,7 @@ install(DIRECTORY resource/ DESTINATION share/${PROJECT_NAME})
 
 install(PROGRAMS
         railtrack_ui/railtrack_ui.py
+        railtrack_ui/railtrack_emulator.py
         DESTINATION lib/${PROJECT_NAME})
 
 ament_package()
