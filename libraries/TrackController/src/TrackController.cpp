@@ -94,9 +94,11 @@ void enqueue_task(void *pvParameter)
 {
 	while(1)
 	{
+#if 1
 	    if(digitalRead(MCP1512_INT_PINn) == 0){
 			enqueue();
 		}
+#endif
 		taskYIELD();
 	}
 }

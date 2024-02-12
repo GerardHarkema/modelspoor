@@ -143,21 +143,7 @@ uint8_t can_reset(){
 uint8_t can_init(uint8_t speed, bool loopback)
 {
 
-	//RESET(P_SCK);
-	//RESET(P_MOSI);
-	//RESET(P_MISO);
-	
-	//SET_OUTPUT(P_SCK);
-	//SET_OUTPUT(P_MOSI);
-	//SET_INPUT(P_MISO);
-	
-	//SET_INPUT(MCP2515_INT);
-	//SET(MCP2515_INT);
-	
-	// active SPI master interface
-	//SPCR = (1<<SPE)|(1<<MSTR) | (0<<SPR1)|(1<<SPR0);
-	//SPSR = 0;
-	
+
 	pinMode(MCP2512_CS_PINn, OUTPUT); // set the SS pin as an output
 	deactivateMCP2512();
 
@@ -181,14 +167,16 @@ uint8_t can_init(uint8_t speed, bool loopback)
 	can_write_register(CNF3, (1<<PHSEG21));
 	can_write_register(CNF2, (1<<BTLMODE)|(1<<PHSEG11));
 
-
+uint8_t expect_result;
 #ifdef MCP2515_XTAL_FREQ
 	#if MCP2515_XTAL_FREQ == XTAL_16MHZ
 		#pragma message "compiled for 16MHz XTAL"
 		can_write_register(CNF1, (1<<BRP1)|(1<<BRP0));
+		expect_result = 3;
 	#elif MCP2515_XTAL_FREQ == XTAL_8MHZ
 		#pragma message "compiled for 8MHz XTAL"
 		can_write_register(CNF1, (1<<BRP0));
+		expect_result = 1;
 	#else
 		#error message "invalid xtal frequency defined"
 	#endif
@@ -230,7 +218,7 @@ uint8_t can_init(uint8_t speed, bool loopback)
 #endif
 	// test if we could read back the value => is the chip accessible?
 
-	if (can_read_register(CNF1) != 3) {
+	if (can_read_register(CNF1) != expect_result) {
 
 		Serial.println(can_read_register(CNF1), HEX);
 

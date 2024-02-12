@@ -16,7 +16,12 @@
 #include <railway_interfaces/msg/locomotive_control.h>
 #include <railway_interfaces/msg/locomotive_state.h>
 
-//#include "rail_track_def.h"
+#include <Adafruit_GFX.h> // Core graphics library
+#include <Fonts/FreeSansBold9pt7b.h>
+//#include <Fonts/Tiny3x3a2pt7b.h>
+#include <Adafruit_ST7735.h> // Hardware-specific library
+#include <SPI.h>
+
 
 #if !defined(ESP32) && !defined(TARGET_PORTENTA_H7_M7) && !defined(ARDUINO_NANO_RP2040_CONNECT) && !defined(ARDUINO_WIO_TERMINAL)
 #error This application is only avaible for Arduino Portenta, Arduino Nano RP2040 Connect, ESP32 Dev module and Wio Terminal
@@ -45,6 +50,12 @@ rclc_executor_t executor;
 railway_interfaces__msg__TurnoutControl turnout_control;
 railway_interfaces__msg__LocomotiveControl locomotive_control;
 std_msgs__msg__Bool power_control;
+
+// int8_t cs, int8_t dc, int8_t rst
+#define CS_PIN  16
+#define DC_PIN  17
+#define RST_PIN 21
+Adafruit_ST7735 *tft;
 
 typedef enum{
     MM1, MM2, DCC, MFX
@@ -205,6 +216,19 @@ void setup() {
   while (!Serial);
   delay(2000);
   Serial.println("Marklin canbus controller started");
+
+  tft = new Adafruit_ST7735(CS_PIN, DC_PIN, RST_PIN);
+
+  tft->initR(INITR_GREENTAB);
+  tft->fillScreen(ST77XX_BLACK);
+  tft->setRotation(3);
+  tft->setFont(&FreeSansBold9pt7b);
+  //tft->setFont(&Tiny3x3a2pt7b);
+  tft->fillScreen(ST77XX_BLACK);
+  tft->setTextColor(ST77XX_GREEN);
+  tft->setTextSize(1);
+  tft->setCursor(1, 20);
+  tft->println("RailTrackController Started");
 
   ctrl = new TrackController(0xdf24, DEBUG);
   if(DEBUG){  
@@ -381,6 +405,7 @@ void loop() {
 
     switch(message.command){
       case SYSTEM_BEFEHL:
+        tft->println("system");
         switch(message.data[4]){
           case SYSTEM_STOP:
               power_status.data = false;

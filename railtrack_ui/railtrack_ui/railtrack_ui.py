@@ -71,16 +71,15 @@ class RailTrackNode(Node):
         self.turnouts = []
         with Client.auto_index_client:
             with ui.tabs().classes('w-full') as tabs:
-                locomotives_tab = ui.tab('Locomotives')
-                turnouts_tab = ui.tab('Turnouts')
+                self.locomotives_tab = ui.tab('Locomotives')
+                self.turnouts_tab = ui.tab('Turnouts')
                 try:
                     tmp = self.track_config["railtrack_layout_image"]
-                    print(tmp)
-                    tracklayouts_tab = ui.tab('Track Layout')
+                    self.tracklayouts_tab = ui.tab('Track Layout')
                 except KeyError:
                     pass
-            with ui.tab_panels(tabs, value=turnouts_tab).classes('w-full'):
-                with ui.tab_panel(turnouts_tab):
+            with ui.tab_panels(tabs, value=self.turnouts_tab).classes('w-full'):
+                with ui.tab_panel(self.turnouts_tab):
                     with ui.grid(columns=3):
 
                         for turnout in self.track_config["Turnouts"]["c-type"]:
@@ -91,14 +90,14 @@ class RailTrackNode(Node):
                         for turnout in self.turnouts:
                             tc = turnout_control(turnout, self.turnout_control_publisher)
                             self.turnoutsui.append(tc)
-                with ui.tab_panel(locomotives_tab):
+                with ui.tab_panel(self.locomotives_tab):
                     with ui.grid(columns=3):
                         for loc in self.track_config['Locomotives']:
                             locomotive = locomotive_control(loc, self.locomotive_control_publisher, self.locomotive_images_path)
                             self.locomotivesui.append(locomotive)
                 try:
-                    with ui.tab_panel(tracklayouts_tab):
-                        tmp = self.track_config["railtrack_layout_image"]
+                    tmp = self.track_config["railtrack_layout_image"]
+                    with ui.tab_panel(self.tracklayouts_tab):
                         railtracklayout_image_file = self.railtracklayout_images_path + "/"+ self.track_config["railtrack_layout_image"]
                         self.track_control = railtracklayout_control(self.track_config["Turnouts"], railtracklayout_image_file, self.turnout_control_publisher)
                         pass
@@ -112,7 +111,11 @@ class RailTrackNode(Node):
         self.power_state = False
 
     def turnout_status_callback(self, status):
-        self.track_control.set_status_indicator(status)
+        try:
+            tmp = self.track_config["railtrack_layout_image"]
+            self.track_control.set_status_indicator(status)
+        except:
+            pass
         for turnout in self.turnoutsui:
             turnout.set_status_indicator(status)
 
