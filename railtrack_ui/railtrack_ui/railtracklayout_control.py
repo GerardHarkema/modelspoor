@@ -117,7 +117,7 @@ class railtracklayout_control(Node):
     def __init__(self, turnouts, railtracklayout_image_filemage, turnout_control_publisher):
         self.turnout_control_publisher = turnout_control_publisher;
         self.turnouts = []
-        self.layout = ui.interactive_image(railtracklayout_image_filemage, on_mouse=self.mouse_handler, events=['mousedown', 'mouseup'], cross=True).classes('w-256')
+        self.layout = ui.interactive_image(railtracklayout_image_filemage, on_mouse=self.mouse_handler, events=['mousedown', 'mouseup'], cross=True).classes('w-512')
         for turnout in turnouts["c-type"]:
             tc = turnout_control_on_layout(turnout, self.layout, self.turnout_control_publisher)
             self.turnouts.append(tc)

@@ -15,7 +15,9 @@
 #include <railway_interfaces/msg/turnout_control.h>
 #include <railway_interfaces/msg/turnout_state.h>
 
-//#include "rail_track_def.h"
+#include <Adafruit_GFX.h> // Core graphics library
+#include <Fonts/FreeSansBold9pt7b.h>
+#include <Adafruit_ST7735.h> // Hardware-specific library
 
 #if !defined(ESP32) && !defined(TARGET_PORTENTA_H7_M7) && !defined(ARDUINO_NANO_RP2040_CONNECT) && !defined(ARDUINO_WIO_TERMINAL)
 #error This application is only avaible for Arduino Portenta, Arduino Nano RP2040 Connect, ESP32 Dev module and Wio Terminal
@@ -75,16 +77,16 @@ typedef struct{
   //TURNOUT turnout;
 }TURNOUT_CONFIG;
 
-#if 0
-// For further implementation
-TURNOUT_CONFIG_EX test[] = {
-    {MAGNET, 10, {.magnet = {10, 11}}},
-    {SERVO, 13, {.servo = {13, 178, 12}}},
-    {ANALOG_OUT, 15, {.analog_out = {15, 16}}},
-    {DIGITAL_OUT, 20, {.digital_out = {20, true}}},
-};
+#define CS_PIN  17
+#define DC_PIN  18
+#define RST_PIN 19
+#define MOSI_PIN 21
+#define SCLK_PIN 22
 
-#endif
+#define CURSOR_BASE  44
+#define CURSOR_OFFSET  22
+
+Adafruit_ST7735 *tft;
 
 #include "turnout_config.h"
 
@@ -96,14 +98,21 @@ rcl_timer_t timer;
 #define RCCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){error_loop();}}
 #define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){}}
 
+
+int scan_index = 0;
+
 bool lookupTurnoutIndex(int turnout_number, int *turnout_index){
-  int i;
-  for(i = 0; i < NUMBER_OF_TURNOUTS; i++){
-    if(turnout_config[i].turnout_number == turnout_number) break;
-  }
-  if(i == NUMBER_OF_TURNOUTS) return false;
-  *turnout_index = i;
-  return true;
+  //int i;
+  while(scan_index < NUMBER_OF_TURNOUTS){
+    if(turnout_config[scan_index].turnout_number == turnout_number){
+      *turnout_index = scan_index;
+      scan_index++; 
+      return true;
+    }
+    scan_index++; 
+  }  
+  if(scan_index == NUMBER_OF_TURNOUTS) scan_index = 0;
+  return false;
 }
 
 void error_loop(){
@@ -120,7 +129,7 @@ void turnout_control_callback(const void * msgin)
   const railway_interfaces__msg__TurnoutControl * control = (const railway_interfaces__msg__TurnoutControl *)msgin;
   //Serial.println("callback");
   //Serial.println(control->number);
-  if(lookupTurnoutIndex(control->number, &turnout_index)){
+  while(lookupTurnoutIndex(control->number, &turnout_index)){
       //Serial.println("set turnout");
       uint pin;
       bool state;
@@ -157,8 +166,19 @@ void turnout_control_callback(const void * msgin)
       turnout_status[turnout_index].state = control->state ? true : false;
       EEPROM.writeBool(turnout_index, turnout_status[turnout_index].state);
       EEPROM.commit();
+      int cursor = CURSOR_BASE + (turnout_index * CURSOR_OFFSET);
+      tft->fillRect(0, cursor- 11, tft->width()-1, CURSOR_OFFSET, ST77XX_BLACK); 
+      tft->setCursor(5, cursor);
+      if(turnout_status[turnout_index].state){
+        tft->setTextColor(ST77XX_GREEN);
+        tft->printf("T%i: Green", control->number);
+      }
+      else{
+        tft->setTextColor(ST77XX_BLUE);
+        tft->printf("T%i: Red", control->number);
+      }
   }
-  else Serial.println("Invalid Turnout");
+  //else Serial.println("Invalid Turnout");
 
 }
 
@@ -183,6 +203,23 @@ void setup() {
   Serial.print("Turnout-decoder started, node: ");
   Serial.println(NODE_NAME);
 
+  tft = new Adafruit_ST7735(CS_PIN, DC_PIN, MOSI_PIN, SCLK_PIN, RST_PIN);
+  tft->initR(INITR_GREENTAB);
+  tft->fillScreen(ST77XX_BLACK);
+  tft->setRotation(1);
+  delay(500);
+
+
+  tft->setFont(&FreeSansBold9pt7b);
+  tft->setTextSize(1);
+  tft->fillScreen(ST77XX_BLACK);
+  tft->setTextColor(ST77XX_GREEN);
+  tft->setCursor(14, 22);
+  tft->println("Turnout Control");
+  tft->println(NODE_NAME);
+  Serial.print("cursor 1");Serial.println(tft->getCursorY());
+  tft->println("Controller Started");
+
   EEPROM.begin(NUMBER_OF_TURNOUTS);
 
   set_microros_wifi_transports(SSID, PASSWORD, agent_ip, (size_t)PORT);
@@ -190,12 +227,26 @@ void setup() {
   pinMode(STATUS_LED, OUTPUT);
   digitalWrite(STATUS_LED, HIGH);
 
+  tft->fillRect(0, 33, tft->width()-1, tft->height() - 33, ST77XX_BLACK);
   for(int i=0; i < NUMBER_OF_TURNOUTS; i++){
     turnout_status[i].number = turnout_config[i].turnout_number;
     turnout_status[i].state = EEPROM.readBool(i);
     bool state;
     int analog_value;
     int pwm_value;
+    int cursor = CURSOR_BASE + (i * CURSOR_OFFSET); 
+
+    tft->setCursor(5, cursor);
+    if(turnout_status[i].state){
+      tft->setTextColor(ST77XX_GREEN);
+      tft->printf("T%i: Green", turnout_status[i].number);
+    }
+    else{
+      tft->setTextColor(ST77XX_BLUE);
+      tft->printf("T%i: Red", turnout_status[i].number);
+    }
+
+
     switch(turnout_config[i].type){
       case MAGNET:
         pinMode(turnout_config[i].magnet.green_pin, OUTPUT);
@@ -270,6 +321,15 @@ void setup() {
   RCCHECK(rclc_executor_add_subscription(&executor, &turnout_control_subscriber, &turnout_control, &turnout_control_callback, ON_NEW_DATA));
 
   Serial.println("Turnout-decoder ready");
+#if 0
+  Serial.print("cursor 2");Serial.printf("%i\n", tft->getCursorY());
+  tft->println("Controller Ready1");
+  Serial.print("cursor 3");Serial.printf("%i\n", tft->getCursorY());
+  tft->println("Controller Ready2");
+  Serial.print("cursor 4");Serial.printf("%i\n", tft->getCursorY());
+  tft->println("Controller Ready3");
+  Serial.print("cursor 5");Serial.printf("%i\n", tft->getCursorY());
+#endif
 }
 
 void loop() {

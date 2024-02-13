@@ -1,5 +1,5 @@
 {
-  "railtrack_layout_image" : "railtrack_layout.jpg",
+  "railtrack_layout_image" : "railtrack_layoutc.jpg",
   "Locomotives": [
     {
       "name": "DB 74 854",
@@ -121,7 +121,7 @@
     ],
     "m-type": [
         {
-          "number" : 10,
+          "number" : 11,
           "layout_positions" : [
             {
               "position" :{
@@ -131,12 +131,7 @@
               "size" :{
                 "radius" :20
               }
-            }          
-          ]
-        },
-        {
-          "number" : 11,
-          "layout_positions" : [
+            },          
             {
               "position" :{
                 "x" :767,
