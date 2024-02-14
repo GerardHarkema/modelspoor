@@ -1,5 +1,5 @@
 // !!! This is an automated generated header file, do not modify by your self !!!
-// Timestamp: 13/02/2024 15:22:28
+// Timestamp: 14/02/2024 21:45:17
 #ifndef _TRACK_CONFIG_
 #define _TRACK_CONFIG_
 
@@ -16,7 +16,7 @@ LOCOMOTIVE active_locomotives[] = {{5, MFX, 0},{3, DCC, 0},{6, MFX, 0},{78, MM1,
 unsigned short int active_turnouts_c[] = {1, 2, 3, 4};
 #define  NUMBER_OF_ACTIVE_TURNOUTS_C   4
 
-unsigned short int active_turnouts_m[] = {10, 11, 12, 21, 22, 23, 24};
-#define  NUMBER_OF_ACTIVE_TURNOUTS_M   7
+unsigned short int active_turnouts_m[] = {11, 12, 21, 22, 23, 24};
+#define  NUMBER_OF_ACTIVE_TURNOUTS_M   6
 
 #endif //_TRACK_CONFIG_

@@ -8,17 +8,6 @@
 		},
 		{
 			"path": "ros2_turnout_controller"
-		},
-		{
-			"path": "DisplayTest"
-		},
-		{
-			"name": "due_test",
-			"path": "../../../due_test"
-		},
-		{
-			"name": "union_test",
-			"path": "../../../Documents/PlatformIO/Projects/union_test"
 		}
 	],
 	"settings": {

@@ -19,6 +19,8 @@
 #include <Fonts/FreeSansBold9pt7b.h>
 #include <Adafruit_ST7735.h> // Hardware-specific library
 
+#include <tft_printf.h>
+
 #if !defined(ESP32) && !defined(TARGET_PORTENTA_H7_M7) && !defined(ARDUINO_NANO_RP2040_CONNECT) && !defined(ARDUINO_WIO_TERMINAL)
 #error This application is only avaible for Arduino Portenta, Arduino Nano RP2040 Connect, ESP32 Dev module and Wio Terminal
 #endif
@@ -116,6 +118,7 @@ bool lookupTurnoutIndex(int turnout_number, int *turnout_index){
 }
 
 void error_loop(){
+  tft_printf(ST77XX_BLUE, "Tirnout\ncontroller\nError\nSystem halted");
   while(1){
     digitalWrite(STATUS_LED, !digitalRead(STATUS_LED));
     delay(100);
@@ -204,9 +207,12 @@ void setup() {
   Serial.println(NODE_NAME);
 
   tft = new Adafruit_ST7735(CS_PIN, DC_PIN, MOSI_PIN, SCLK_PIN, RST_PIN);
+  
+  tft_prinft_begin(tft);
+
   tft->initR(INITR_GREENTAB);
   tft->fillScreen(ST77XX_BLACK);
-  tft->setRotation(1);
+  tft->setRotation(35);
   delay(500);
 
 

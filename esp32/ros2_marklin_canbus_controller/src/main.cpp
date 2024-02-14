@@ -22,6 +22,7 @@
 #include <Adafruit_ST7735.h> // Hardware-specific library
 #include <SPI.h>
 
+#include "tft_printf.h"
 
 #if !defined(ESP32) && !defined(TARGET_PORTENTA_H7_M7) && !defined(ARDUINO_NANO_RP2040_CONNECT) && !defined(ARDUINO_WIO_TERMINAL)
 #error This application is only avaible for Arduino Portenta, Arduino Nano RP2040 Connect, ESP32 Dev module and Wio Terminal
@@ -76,7 +77,6 @@ railway_interfaces__msg__LocomotiveState locomotive_status[NUMBER_OF_ACTIVE_LOCO
 std_msgs__msg__Bool power_status = {0};
 
 
-
 rclc_support_t support;
 rcl_allocator_t allocator;
 rcl_node_t node;
@@ -88,8 +88,11 @@ rcl_timer_t power_state_publisher_timer;
 #define RCCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){error_loop();}}
 #define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){}}
 
+
 void error_loop(){
   Serial.println("Error: System halted");
+  tft_printf(ST77XX_BLUE, "Canbus\ncontroller\nError\nSystem halted");
+
   while(1){
     digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
     delay(100);
@@ -211,6 +214,7 @@ void power_control_callback(const void * msgin)
 //  else Serial.println("Invalid Turnout");
 }
 
+
 void setup() {
   Serial.begin(115200);
   while (!Serial);
@@ -218,6 +222,7 @@ void setup() {
   Serial.println("Marklin canbus controller started");
 
   tft = new Adafruit_ST7735(CS_PIN, DC_PIN, RST_PIN);
+  tft_prinft_begin(tft);
 
   tft->initR(INITR_GREENTAB);
   tft->fillScreen(ST77XX_BLACK);
@@ -227,8 +232,9 @@ void setup() {
   tft->fillScreen(ST77XX_BLACK);
   tft->setTextColor(ST77XX_GREEN);
   tft->setTextSize(1);
-  tft->setCursor(1, 20);
-  tft->println("RailTrackController Started");
+  tft->setCursor(1, 22);
+  tft->println("RailTrackControl");
+  tft_printf(ST77XX_GREEN, "Marklin\ncanbus\ncontroller\nstarted");
 
   ctrl = new TrackController(0xdf24, DEBUG);
   if(DEBUG){  
@@ -391,6 +397,7 @@ void setup() {
   RCCHECK(rclc_executor_add_subscription(&executor, &power_control_subscriber, &power_control, &power_control_callback, ON_NEW_DATA));
 
   Serial.println("!!! Ready for operating !!!");
+  tft_printf(ST77XX_GREEN, "Marklin\ncanbus\ncontroller\nReady");
 }
 
 void loop() {
