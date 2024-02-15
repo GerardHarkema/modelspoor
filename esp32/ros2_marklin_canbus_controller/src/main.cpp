@@ -91,7 +91,7 @@ rcl_timer_t power_state_publisher_timer;
 
 void error_loop(){
   Serial.println("Error: System halted");
-  tft_printf(ST77XX_BLUE, "Canbus\ncontroller\nError\nSystem halted");
+  tft_printf(ST77XX_BLUE, "CANBUS\ncontroller\nError\nSystem halted");
 
   while(1){
     digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
@@ -164,6 +164,8 @@ void turnout_control_callback(const void * msgin)
       EEPROM.commit();
       turnout_status[index].state = straight;
     }
+    tft_printf(ST77XX_GREEN, "ROS msg\nTurnout\nNumber: %i\nSet: %s\n",
+            control->number, straight ? "Green" : "Red");
   }
 //  else Serial.println("Invalid Turnout");
 }
@@ -183,6 +185,8 @@ void locomotive_control_callback(const void * msgin)
         //Serial.print("Index: "); Serial.println(locomotive_index);
         locomotive_status[locomotive_index].speed = control->speed;
       }
+      tft_printf(ST77XX_GREEN, "ROS msg\nLocomotive\nAddress: 0x%x\nSet speed: %i\n",
+            control->address, control->speed);
       break;
     case railway_interfaces__msg__LocomotiveControl__SET_DIRECTION:
       //Serial.print("Address: "); Serial.println(control->address, HEX);
@@ -191,6 +195,20 @@ void locomotive_control_callback(const void * msgin)
       if(lookupLocomotiveIndex(control->address, &locomotive_index)){
         locomotive_status[locomotive_index].direction = control->direction;
       }
+      char *direction_txt;
+      switch(control->direction){
+        case railway_interfaces__msg__LocomotiveState__DIRECTION_FORWARD:
+          direction_txt = "Forward";
+          break;
+        case railway_interfaces__msg__LocomotiveState__DIRECTION_REVERSE:
+          direction_txt = "Reverse";
+          break;
+        default:
+          direction_txt = "Invalid Code";
+          break;
+      }
+      tft_printf(ST77XX_GREEN, "ROS msg\nLocomotive\nAddress: 0x%x\nSet dir: %s\n",
+            control->address, direction_txt);      
       break;
     case railway_interfaces__msg__LocomotiveControl__SET_FUNCTION:
 #if 0
@@ -211,6 +229,8 @@ void power_control_callback(const void * msgin)
   //Serial.println("power_control_callback");
   ctrl->setPower(control->data);
   power_status.data = control->data;
+  tft_printf(ST77XX_GREEN, "CANBUS msg\nSystem: %s", power_status.data ? "Go" : "Halt");
+
 //  else Serial.println("Invalid Turnout");
 }
 
@@ -234,7 +254,7 @@ void setup() {
   tft->setTextSize(1);
   tft->setCursor(1, 22);
   tft->println("RailTrackControl");
-  tft_printf(ST77XX_GREEN, "Marklin\ncanbus\ncontroller\nstarted");
+  tft_printf(ST77XX_GREEN, "Marklin\ncanbus\ncontroller\nstarted\n");
 
   ctrl = new TrackController(0xdf24, DEBUG);
   if(DEBUG){  
@@ -397,7 +417,7 @@ void setup() {
   RCCHECK(rclc_executor_add_subscription(&executor, &power_control_subscriber, &power_control, &power_control_callback, ON_NEW_DATA));
 
   Serial.println("!!! Ready for operating !!!");
-  tft_printf(ST77XX_GREEN, "Marklin\ncanbus\ncontroller\nReady");
+  tft_printf(ST77XX_GREEN, "Marklin\ncanbus\ncontroller\nReady\n");
 }
 
 void loop() {
@@ -405,7 +425,7 @@ void loop() {
   //Serial.print("*");
   if(ctrl->receiveMessage(message)){
 
-    int adress = (message.data[2] << 8) 
+    int address = (message.data[2] << 8) 
                  + message.data[3];
     int index;
     bool straight;
@@ -416,9 +436,11 @@ void loop() {
         switch(message.data[4]){
           case SYSTEM_STOP:
               power_status.data = false;
+               tft_printf(ST77XX_GREEN, "CANBUS msg\nSystem: Stop");
             break;
           case SYSTEM_GO:
               power_status.data = true;
+               tft_printf(ST77XX_GREEN, "CANBUS msg\nSystem: Go");
             break;
           default:
             break;
@@ -426,10 +448,10 @@ void loop() {
         break;
       case ZUBEHOR_SCHALTEN:
           word position;
-          //Serial.print("Adress: 0x");Serial.println(adress, HEX);
+          //Serial.print("address: 0x");Serial.println(address, HEX);
           position = message.data[4];
           int turnout_number;
-          turnout_number = adress - TURNOUT_BASE_ADDRESS + 1;
+          turnout_number = address - TURNOUT_BASE_ADDRESS + 1;
           //Serial.println(turnout_number);
 
           straight = position ? true : false;
@@ -452,20 +474,39 @@ void loop() {
               }
             }
           }
+          tft_printf(ST77XX_GREEN, "CANBUS msg\nTurnout\nNumber: %i\nSet: %s\n",
+            turnout_number, straight ? "Green" : "Red");
+
         break;
       case LOC_GESCHWINDIGHEID:
           word speed;
           speed = (message.data[4] << 8) 
                  + message.data[5];
-          if(lookupLocomotiveIndex(adress, &index)){
+          if(lookupLocomotiveIndex(address, &index)){
             locomotive_status[index].speed = speed;
           }
+          tft_printf(ST77XX_GREEN, "CANBUS msg\nLocomotive\nAddress: 0x%x\nSet speed: %i\n",
+            address, speed);
           break;
       case LOC_RICHTUNG:
-          if(lookupLocomotiveIndex(adress, &index)){
+          if(lookupLocomotiveIndex(address, &index)){
             locomotive_status[index].direction = message.data[4];
             locomotive_status[index].speed = 0;
           }
+          char *direction_txt;
+          switch(message.data[4]){
+            case railway_interfaces__msg__LocomotiveState__DIRECTION_FORWARD:
+              direction_txt = "Forward";
+              break;
+            case railway_interfaces__msg__LocomotiveState__DIRECTION_REVERSE:
+              direction_txt = "Reverse";
+              break;
+            default:
+              direction_txt = "Invalid Code";
+              break;
+          }
+          tft_printf(ST77XX_GREEN, "CANBUS msg\nLocomotive\nAddress: 0x%x\nSet dir: %s\n",
+            address, direction_txt);          
           break;
       case LOC_FUNCTION:
         break;

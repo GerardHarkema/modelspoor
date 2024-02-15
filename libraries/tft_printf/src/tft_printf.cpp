@@ -8,7 +8,7 @@ void tft_prinft_begin(Adafruit_ST7735 *printf_tft){
 }
 
 void tft_printf(int color, const char *fmt, ...){
-  printf_tft_p->fillRect(0, 33, printf_tft_p->width()-1, printf_tft_p->height() - 33, ST77XX_BLACK);
+  printf_tft_p->fillRect(0, 32, printf_tft_p->width()-1, printf_tft_p->height() - 32, ST77XX_BLACK);
   printf_tft_p->setCursor(1, 44);
   printf_tft_p->setTextColor(color);
   

@@ -1,5 +1,5 @@
 {
-  "railtrack_layout_image" : "railtrack_layoutc.jpg",
+  "railtrack_layout_imagex" : "railtrack_layoutc.jpg",
   "Locomotives": [
     {
       "name": "DB 74 854",
@@ -16,7 +16,7 @@
       "type": "Elektrische Locomotief",
       "image": "NS1212.jpg",
       "protocol": "DCC",
-      "address": 3,
+      "address": 60,
       "max_speed" : 900,
       "decrement_speed_step" : 50,
       "increment_speed_step" : 50
