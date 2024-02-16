@@ -44,6 +44,8 @@ class turnout_control_on_layout(Node):
         self.red_contents = []
         self.green_contents = []
         self.status = False
+        self.old_status = False
+        self.first_ui_update = True
 
         self.turnout_msg = TurnoutControl()
         self.turnout_msg.number = turnout["number"]
@@ -68,10 +70,10 @@ class turnout_control_on_layout(Node):
                 self.image.content += red_content
                 
                 rio = rio_class()
-                rio.xmin = x - radius/2
-                rio.xmax = x + radius/2
-                rio.ymin = y - radius/2
-                rio.ymax = y + radius/2
+                rio.xmin = x - radius
+                rio.xmax = x + radius
+                rio.ymin = y - radius
+                rio.ymax = y + radius
                 self.rios.append(rio)
                 #print("Added")
         except:
@@ -103,14 +105,24 @@ class turnout_control_on_layout(Node):
         ui.notify(notify_text)
 
     def set_status_indicator(self, status):
-        if(self.turnout_msg.number == status.number):
-            if status.state:
-                for content in self.green_contents:
-                    self.image.content += content
-            else:
-                for content in self.red_contents:
-                    self.image.content += content
-            self.status =  status.state
+        self.old_status = False
+        self.first_ui_update = True
+
+        if self.first_ui_update or self.old_status != status.state:
+            if(self.turnout_msg.number == status.number):
+                if status.state:
+                    #for content in self.red_contents:
+                    #    self.image.content -= content
+                    for content in self.green_contents:
+                        self.image.content += content
+                else:
+                    #for content in self.green_contents:
+                    #    self.image.content -= content
+                    for content in self.red_contents:
+                        self.image.content += content
+                self.status =  status.state
+            self.first_ui_update = False
+            self.old_status = status.state
         pass
 
 class railtracklayout_control(Node):

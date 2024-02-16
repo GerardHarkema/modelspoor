@@ -94,11 +94,9 @@ void enqueue_task(void *pvParameter)
 {
 	while(1)
 	{
-#if 1
 	    if(digitalRead(MCP1512_INT_PINn) == 0){
 			enqueue();
 		}
-#endif
 		taskYIELD();
 	}
 }
@@ -110,30 +108,17 @@ boolean dequeue(can_t *p) {
 	noInterrupts();
 #endif
 
-		if (posWrite == posRead && !lastOpWasWrite) {
-//			interrupts();
-			return false;
-		}
+	if (posWrite == posRead && !lastOpWasWrite) {
+#ifndef ESP32 
+		interrupts();
+#endif
+		return false;
+	}
 
-		memcpy(p, &_buffer[posRead], sizeof(can_t));
-	#if 0
-		for(int i = 0; i < 8; i++){
-			Serial.print(" 0x"); Serial.print(p->data[i], HEX);
-		}
-		Serial.println("");
-	#endif
-	/*
-		p->id=_buffer[posRead].id;
-		p->length=_buffer[posRead].length;
+	memcpy(p, &_buffer[posRead], sizeof(can_t));
 
-		for (int i = 0; i < p->length; i++) {
-			p->data[i] = _buffer[posRead].data[i];
-		}
-	*/
-		//*p = _buffer[posRead];
-
-		posRead = (posRead + 1) % SIZE;
-		lastOpWasWrite = false;
+	posRead = (posRead + 1) % SIZE;
+	lastOpWasWrite = false;
 
 #ifndef ESP32 
 	interrupts();
@@ -171,39 +156,6 @@ size_t TrackMessage::printTo(Print& p) const {
 
     return size;
 }
-#if 0
-
-boolean TrackMessage::parseFrom(String &s) {
-	boolean result = true;
-
-	clear();
-
-	if (s.length() < 11) {
-		return false;
-	}
-
-	Serial.println(s);
-
-	hash = parseHex(s, 0, 4, &result);
-	response = s.charAt(5) != ' ';
-	command = parseHex(s, 7, 9, &result);
-	length = parseHex(s, 10, 11, &result);
-
-	if (length > 8) {
-		return false;
-	}
-
-	if (s.length() < 11 + 3 * length) {
-		return false;
-	}
-
-	for (int i = 0; i < length; i++) {
-		data[i] = parseHex(s, 12 + 3 * i, 12 + 3 * i + 2, &result);
-	}
-
-	return result;
-}
-#endif
 // ===================================================================
 // === TrackController ===============================================
 // ===================================================================
@@ -273,7 +225,7 @@ void TrackController::begin() {
 
 #else
 	attachInterrupt(digitalPinToInterrupt(MCP1512_INT_PINn), enqueue, FALLING);
-	interrupts();// ???
+	interrupts();
 #endif
 
 	if (!can_init(5, mLoopback)) {
@@ -380,25 +332,6 @@ boolean TrackController::receiveMessage(TrackMessage &message) {
 	//Serial.println(result);
 	if (result) {
 
-#if 0
-		if (mDebug) {
-			
-			Serial.print("ID :");
-			Serial.println(can.id, HEX);
-			Serial.print("EXIDE:");
-			Serial.println(can.flags.extended, HEX);
-			Serial.print("DLC:");
-			Serial.println(can.length, HEX);
-			Serial.print("DATA:");
-
-			for (int i = 0; i < can.length; i++) {
-				Serial.println(can.data[i], HEX);
-			}
-			
-			Serial.println();
-		}
-#endif
-
 		if(can.length > 8) return false; // Error in protocol?? Prevent unknown segmentation fault
 
 		message.clear();
@@ -481,21 +414,6 @@ boolean TrackController::setPower(boolean power) {
 	return exchangeMessage(message, message, 1000);
 }
 
-#if 0
-boolean TrackController::getPower(boolean *power) {
-	TrackMessage message;
-
-	message.clear();
-	message.command = 0x00;
-	message.length = 0x00;
-	//message.data[4] = power ? 0x01 : 0x00;
-
-	exchangeMessage(message, message, 1000);
-	//Serial.println(message.length);
-
-	return true;
-}
-#endif
 boolean TrackController::setLocoDirection(word address, byte direction) {
 	TrackMessage message;
 

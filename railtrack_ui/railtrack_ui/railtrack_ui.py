@@ -127,11 +127,11 @@ class RailTrackNode(Node):
     def power_status_callback(self, power):
         if power.data:
             self.power_state = True
-            self.power_button.classes('drop-shadow bg-red')
+            self.power_button.classes('drop-shadow bg-red', remove='bg-green')
             self.power_button.text = 'STOP'
         else:
             self.power_state = False
-            self.power_button.classes('drop-shadow bg-green') 
+            self.power_button.classes('drop-shadow bg-green', remove='bg-red') 
             self.power_button.text = 'ENABLE'
         if(self.active_status):
             self.active.classes('text-green', remove='text-red')
@@ -148,12 +148,12 @@ class RailTrackNode(Node):
         #ui.notify(self.power_button.text)
         msg = Bool()
         if(self.power_button.text == 'STOP'):
-            self.power_button.classes('drop-shadow bg-green') 
+            self.power_button.classes('drop-shadow bg-green', remove='bg-red') 
             self.power_button.text = 'ENABLE'
             msg.data = False
             self.power_state = False
         else:
-            self.power_button.classes('drop-shadow bg-red')
+            self.power_button.classes('drop-shadow bg-red', remove='bg-green')
             self.power_button.text = 'STOP'
             msg.data = True
             self.power_state = True

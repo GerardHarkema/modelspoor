@@ -98,6 +98,41 @@ void error_loop(){
     delay(100);
   }
 }
+void lookupLocomotiveProtocolAddress(int address, char *protocol, int *sub_address){
+  if(address >= ADDR_MM2 && address < ADDR_SX1){
+    strcpy(protocol, "MM");
+    
+    *sub_address = address;
+  }
+  else if (address >= ADDR_MFX && address < (ADDR_MFX + 0x0fff))
+  {
+    strcpy(protocol, "MFX");
+    *sub_address = address - ADDR_MFX;
+  }
+  else if (address >= ADDR_DCC && address < (ADDR_DCC + 0x0fff))
+  {
+    strcpy(protocol, "DCC");
+    *sub_address = address - ADDR_DCC;
+  }
+  else {
+     strcpy(protocol, "???");
+    *sub_address = 0;
+  }
+}
+
+void getDirectionTxt(int direction, char*direction_txt){
+  switch(direction){
+    case railway_interfaces__msg__LocomotiveState__DIRECTION_FORWARD:
+      strcpy(direction_txt, "Forward");
+      break;
+    case railway_interfaces__msg__LocomotiveState__DIRECTION_REVERSE:
+      strcpy(direction_txt, "Reverse");
+      break;
+    default:
+      strcpy(direction_txt, "Invalid Code");
+      break;
+  }
+}
 
 bool lookupTurnoutIndex(int turnout_number, int *turnout_index){
   int i;
@@ -175,6 +210,9 @@ void locomotive_control_callback(const void * msgin)
   const railway_interfaces__msg__LocomotiveControl * control = (const railway_interfaces__msg__LocomotiveControl *)msgin;
 
   int locomotive_index;
+  char direction_txt[10];
+  char protocol_txt[10];
+  int sub_address;
 
   switch(control->command){
     case railway_interfaces__msg__LocomotiveControl__SET_SPEED:
@@ -185,8 +223,9 @@ void locomotive_control_callback(const void * msgin)
         //Serial.print("Index: "); Serial.println(locomotive_index);
         locomotive_status[locomotive_index].speed = control->speed;
       }
-      tft_printf(ST77XX_GREEN, "ROS msg\nLocomotive\nAddress: 0x%x\nSet speed: %i\n",
-            control->address, control->speed);
+      lookupLocomotiveProtocolAddress(control->address, protocol_txt, &sub_address);
+      tft_printf(ST77XX_GREEN, "ROS msg\nLocomotive\nAddress(%s): %i\nSet speed: %i\n",
+            protocol_txt, sub_address, control->speed);
       break;
     case railway_interfaces__msg__LocomotiveControl__SET_DIRECTION:
       //Serial.print("Address: "); Serial.println(control->address, HEX);
@@ -195,28 +234,19 @@ void locomotive_control_callback(const void * msgin)
       if(lookupLocomotiveIndex(control->address, &locomotive_index)){
         locomotive_status[locomotive_index].direction = control->direction;
       }
-      char *direction_txt;
-      switch(control->direction){
-        case railway_interfaces__msg__LocomotiveState__DIRECTION_FORWARD:
-          direction_txt = "Forward";
-          break;
-        case railway_interfaces__msg__LocomotiveState__DIRECTION_REVERSE:
-          direction_txt = "Reverse";
-          break;
-        default:
-          direction_txt = "Invalid Code";
-          break;
-      }
-      tft_printf(ST77XX_GREEN, "ROS msg\nLocomotive\nAddress: 0x%x\nSet dir: %s\n",
-            control->address, direction_txt);      
+      getDirectionTxt(control->direction, direction_txt);
+      lookupLocomotiveProtocolAddress(control->address, protocol_txt, &sub_address);      
+      tft_printf(ST77XX_GREEN, "ROS msg\nLocomotive\nAddress(%s): %i\nSet dir: %s\n",
+            protocol_txt, sub_address, direction_txt);      
       break;
     case railway_interfaces__msg__LocomotiveControl__SET_FUNCTION:
-#if 0
       ctrl->setLocoFunction(control->address, control->function_index, control->function_state);
       if(lookupLocomotiveIndex(control->address, &locomotive_index)){
-        locomotive_status[locomotive_index].function.data.data[control->function_index] = control->function_state;
-     }
-#endif
+        locomotive_status[locomotive_index].function_state.data[control->function_index] = control->function_state;
+      }
+      lookupLocomotiveProtocolAddress(control->address, protocol_txt, &sub_address);      
+      tft_printf(ST77XX_GREEN, "ROS msg\nLocomotive\nAddress(%s): %i\nSet Func. %i: %s\n",
+            protocol_txt, sub_address, control->function_index, control->function_state ? "True" : "False");
       break;
     default:
       Serial.println("Invalid command");
@@ -250,11 +280,11 @@ void setup() {
   tft->setFont(&FreeSansBold9pt7b);
   //tft->setFont(&Tiny3x3a2pt7b);
   tft->fillScreen(ST77XX_BLACK);
-  tft->setTextColor(ST77XX_GREEN);
+  tft->setTextColor(ST77XX_CYAN);
   tft->setTextSize(1);
   tft->setCursor(1, 22);
   tft->println("RailTrackControl");
-  tft_printf(ST77XX_GREEN, "Marklin\ncanbus\ncontroller\nstarted\n");
+  tft_printf(ST77XX_MAGENTA, "Marklin\ncanbus\ncontroller\nstarted\n");
 
   ctrl = new TrackController(0xdf24, DEBUG);
   if(DEBUG){  
@@ -280,16 +310,13 @@ void setup() {
     switch(active_locomotives[i].protocol){
       case MM1:
       case MM2:
-        locomotive_status[i].address = active_locomotives[i].id;
-        //locomotive_status[i].function.data.size = NUMBER_OF_MM1_FUNCTIONS;      
+        locomotive_status[i].address = active_locomotives[i].id;     
         break;
       case DCC:
-        locomotive_status[i].address = active_locomotives[i].id + ADDR_DCC;
-        //locomotive_status[i].function.data.size = NUMBER_OF_DCC_FUNCTIONS;      
+        locomotive_status[i].address = active_locomotives[i].id + ADDR_DCC;     
       break;
       case MFX:
-        locomotive_status[i].address = active_locomotives[i].id + ADDR_MFX;
-        //locomotive_status[i].function.data.size = NUMBER_OF_MFX_FUNCTIONS;      
+        locomotive_status[i].address = active_locomotives[i].id + ADDR_MFX;    
       break;
 
     }
@@ -300,11 +327,16 @@ void setup() {
     ctrl->getLocoDirection(locomotive_status[i].address, &direction);
     locomotive_status[i].direction = direction;
 
-#if 0
-      for(int j = 0; j < locomotive_status[i].function.data.size; j++){
-        //locomotive_status[i].function.data.data[j] = false;
-      }
-#endif
+
+    locomotive_status[i].function_state.capacity = 32;
+    locomotive_status[i].function_state.data = (bool*) malloc(locomotive_status[i].function_state.capacity * sizeof(bool));
+    locomotive_status[i].function_state.size = 32;
+
+    for(int j = 0; j < 32; j++){
+      byte power;
+      ctrl->getLocoFunction(locomotive_status[i].address, j, &power);
+      locomotive_status[i].function_state.data[j] = power ? true : false;
+    }
   }
   set_microros_wifi_transports(SSID, PASSWORD, agent_ip, (size_t)PORT);
 
@@ -417,8 +449,9 @@ void setup() {
   RCCHECK(rclc_executor_add_subscription(&executor, &power_control_subscriber, &power_control, &power_control_callback, ON_NEW_DATA));
 
   Serial.println("!!! Ready for operating !!!");
-  tft_printf(ST77XX_GREEN, "Marklin\ncanbus\ncontroller\nReady\n");
+  tft_printf(ST77XX_MAGENTA, "Marklin\ncanbus\ncontroller\nReady\n");
 }
+
 
 void loop() {
 
@@ -429,10 +462,12 @@ void loop() {
                  + message.data[3];
     int index;
     bool straight;
+    char protocol_txt[10];
+    int sub_address;
+    char direction_txt[10];
 
     switch(message.command){
       case SYSTEM_BEFEHL:
-        tft->println("system");
         switch(message.data[4]){
           case SYSTEM_STOP:
               power_status.data = false;
@@ -485,30 +520,29 @@ void loop() {
           if(lookupLocomotiveIndex(address, &index)){
             locomotive_status[index].speed = speed;
           }
-          tft_printf(ST77XX_GREEN, "CANBUS msg\nLocomotive\nAddress: 0x%x\nSet speed: %i\n",
-            address, speed);
+          lookupLocomotiveProtocolAddress(address, protocol_txt, &sub_address);
+          tft_printf(ST77XX_GREEN, "CANBUS msg\nLocomotive\nAddress(%s): %i\nSet speed: %i\n",
+            protocol_txt, sub_address, speed);
           break;
       case LOC_RICHTUNG:
           if(lookupLocomotiveIndex(address, &index)){
             locomotive_status[index].direction = message.data[4];
             locomotive_status[index].speed = 0;
           }
-          char *direction_txt;
-          switch(message.data[4]){
-            case railway_interfaces__msg__LocomotiveState__DIRECTION_FORWARD:
-              direction_txt = "Forward";
-              break;
-            case railway_interfaces__msg__LocomotiveState__DIRECTION_REVERSE:
-              direction_txt = "Reverse";
-              break;
-            default:
-              direction_txt = "Invalid Code";
-              break;
-          }
-          tft_printf(ST77XX_GREEN, "CANBUS msg\nLocomotive\nAddress: 0x%x\nSet dir: %s\n",
-            address, direction_txt);          
+          getDirectionTxt(message.data[4], direction_txt);
+          lookupLocomotiveProtocolAddress(address, protocol_txt, &sub_address);
+          tft_printf(ST77XX_GREEN, "CANBUS msg\nLocomotive\nAddress(%s): %i\nSet dir: %s\n",
+            protocol_txt, sub_address, direction_txt);          
           break;
       case LOC_FUNCTION:
+          lookupLocomotiveProtocolAddress(address, protocol_txt, &sub_address);
+          int function_index = message.data[4];
+          int function_enable = message.data[5];
+          tft_printf(ST77XX_GREEN, "CANBUS msg\nLocomotive\nAddress(%s): %i\nSet Func. %i: %s\n",
+            protocol_txt, sub_address, function_index, function_enable ? "True" : "False");
+          if(lookupLocomotiveIndex(address, &index)){
+            locomotive_status[index].function_state.data[function_index] = function_enable ? true : false;
+          }  
         break;
 ///      default:
 //        break;    

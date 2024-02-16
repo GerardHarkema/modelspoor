@@ -219,7 +219,7 @@ void setup() {
   tft->setFont(&FreeSansBold9pt7b);
   tft->setTextSize(1);
   tft->fillScreen(ST77XX_BLACK);
-  tft->setTextColor(ST77XX_GREEN);
+  tft->setTextColor(ST77XX_CYAN);
   tft->setCursor(14, 22);
   tft->println("Turnout Control");
   tft->println(NODE_NAME);
@@ -327,15 +327,6 @@ void setup() {
   RCCHECK(rclc_executor_add_subscription(&executor, &turnout_control_subscriber, &turnout_control, &turnout_control_callback, ON_NEW_DATA));
 
   Serial.println("Turnout-decoder ready");
-#if 0
-  Serial.print("cursor 2");Serial.printf("%i\n", tft->getCursorY());
-  tft->println("Controller Ready1");
-  Serial.print("cursor 3");Serial.printf("%i\n", tft->getCursorY());
-  tft->println("Controller Ready2");
-  Serial.print("cursor 4");Serial.printf("%i\n", tft->getCursorY());
-  tft->println("Controller Ready3");
-  Serial.print("cursor 5");Serial.printf("%i\n", tft->getCursorY());
-#endif
 }
 
 void loop() {

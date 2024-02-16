@@ -153,30 +153,22 @@ uint8_t can_init(uint8_t speed, bool loopback)
 
 	// reset MCP2515 by software reset.
 	// After this he is in configuration mode.
-#if 1
 	can_reset();
-#else
-	activateMCP2512();
-	spi_putc(SPI_RESET);
-	deactivateMCP2512();
-	// wait a little bit until the MCP2515 has restarted
-	_delay_us(10);
-#endif
-#if 1
+
 	// Bitrate 250 kbps at 16 MHz
 	can_write_register(CNF3, (1<<PHSEG21));
 	can_write_register(CNF2, (1<<BTLMODE)|(1<<PHSEG11));
 
-uint8_t expect_result;
+	uint8_t expect_cnf1_result;
 #ifdef MCP2515_XTAL_FREQ
 	#if MCP2515_XTAL_FREQ == XTAL_16MHZ
 		#pragma message "compiled for 16MHz XTAL"
 		can_write_register(CNF1, (1<<BRP1)|(1<<BRP0));
-		expect_result = 3;
+		expect_cnf1_result = (1<<BRP1)|(1<<BRP0);
 	#elif MCP2515_XTAL_FREQ == XTAL_8MHZ
 		#pragma message "compiled for 8MHz XTAL"
 		can_write_register(CNF1, (1<<BRP0));
-		expect_result = 1;
+		expect_cnf1_result = (1<<BRP0);
 	#else
 		#error message "invalid xtal frequency defined"
 	#endif
@@ -186,39 +178,9 @@ uint8_t expect_result;
 	// activate interrupts
 	can_write_register(CANINTE, (1<<RX1IE)|(1<<RX0IE));
 
-#else
-	// load CNF1..3 Register
-	activateMCP2512();
-	spi_putc(SPI_WRITE);
-	spi_putc(CNF3);
-	
-/*	spi_putc((1<<PHSEG21));		// Bitrate 125 kbps at 16 MHz
-	spi_putc((1<<BTLMODE)|(1<<PHSEG11));
-	spi_putc((1<<BRP2)|(1<<BRP1)|(1<<BRP0));
-*/
-/*	
-	spi_putc((1<<PHSEG21));		// Bitrate 250 kbps at 16 MHz
-	spi_putc((1<<BTLMODE)|(1<<PHSEG11));
-	spi_putc((1<<BRP1)|(1<<BRP0));
-*/	
-	spi_putc((1<<PHSEG21));		// Bitrate 250 kbps at 16 MHz
-	spi_putc((1<<BTLMODE)|(1<<PHSEG11));
-	spi_putc((1<<BRP1)|(1<<BRP0));
-
-//	spi_putc(0x03);
-//	spi_putc(0xac);
-//	spi_putc(0x81);
-
-	// spi_putc(1<<BRP0);
-
-//    spi_putc(speed);
-
-	spi_putc((1<<RX1IE)|(1<<RX0IE));
-	deactivateMCP2512();
-#endif
 	// test if we could read back the value => is the chip accessible?
 
-	if (can_read_register(CNF1) != expect_result) {
+	if (can_read_register(CNF1) != expect_cnf1_result) {
 
 		Serial.println(can_read_register(CNF1), HEX);
 
@@ -239,7 +201,6 @@ uint8_t expect_result;
 	
 	// reset device to normal mode
 	can_write_register(CANCTRL, loopback ? 64 : 0);
-//	SET(LED2_HIGH);
 	return true;
 	
 }
@@ -296,14 +257,6 @@ uint8_t can_get_message(tCAN *message)
     uint32_t id3 = spi_putc(0xff);
     uint32_t id4 = spi_putc(0xff);
 
-    /*
-    Serial.println("--- ID ---");
-    Serial.println(id1, HEX);
-    Serial.println(id2, HEX);
-    Serial.println(id3, HEX);
-    Serial.println(id4, HEX);
-    */
-
     message->flags.extended = bit_is_set(id2, 3) ? 1 : 0;
 
 	// read id
@@ -311,8 +264,6 @@ uint8_t can_get_message(tCAN *message)
 	message->id |= (((id2 & 0xE0) >> 3) | (id2 & 0x03)) << 16;
     message->id |= id3 << 8;
     message->id |= id4;
-
-    // message->id = (id1 << 24) | (id2 << 16 | id3 << 8 | id4;
 
 
 	// read DLC
@@ -352,7 +303,7 @@ uint8_t can_send_message(tCAN *message)
 	 */
 	uint8_t address;
 	uint8_t t;
-//	SET(LED2_HIGH);
+
 	if (bit_is_clear(status, 2)) {
 		address = 0x00;
 	}
@@ -404,7 +355,6 @@ uint8_t can_send_message(tCAN *message)
 	}
 	deactivateMCP2512();
 	
-	//_delay_us(1);
 #if defined(__AVR_ATmega328P__)
 	_delay_us(1);
 #else
