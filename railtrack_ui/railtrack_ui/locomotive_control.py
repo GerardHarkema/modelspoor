@@ -67,29 +67,33 @@ class locomotive_control(Node):
                 self.increment_button = ui.button(icon = 'add', on_click=lambda:self.set_increment_speed()) 
                 self.direction_button = ui.button('FORWARD', on_click=lambda:self.set_direction()).classes('drop-shadow bg-red')
                 self.stop_button = ui.button('STOP', on_click=lambda:self.stop())
-
-
-                with ui.dialog() as dialog, ui.card():
-                    self.set_functions = []
-                    self.function_buttons = []
-                    ui.label('Functions')
+                try:
                     functions = locomotive_descr['functions']
-                    with ui.grid(columns=2):
-                        for function in functions:
-                            number = function['number']
-                            set_function = partial(self.set_function, number)
-                            self.set_functions.append(set_function)
-                            text = "F" + str(number) + " " + function['title']
-                            icon = function['icon']
-                            button = ui.button(text, icon = icon, on_click=set_function).classes('drop-shadow bg-red') 
-                            self.function_buttons.append(button)
-                            self.function_status.append(False)
-                            self.function_numbers.append(number)            
-                            # see icons https://fonts.google.com/icons
-                    ui.button('Close', on_click=dialog.close)
-                ui.button('Functions', on_click=dialog.open)
+                    with ui.dialog() as dialog, ui.card():
+                        self.set_functions = []
+                        self.function_buttons = []
+                        ui.label('Functions')
+                        
+                        with ui.grid(columns=2):
+                            for function in functions:
+                                number = function['number']
+                                set_function = partial(self.set_function, number)
+                                self.set_functions.append(set_function)
+                                text = "F" + str(number) + " " + function['title']
+                                try:
+                                    icon = function['icon']
+                                    button = ui.button(text, icon = icon, on_click=set_function).classes('drop-shadow bg-red')
+                                except KeyError:
+                                    button = ui.button(text, on_click=set_function).classes('drop-shadow bg-red')
+                                self.function_buttons.append(button)
+                                self.function_status.append(False)
+                                self.function_numbers.append(number)            
+                                # see icons https://fonts.google.com/icons
+                        ui.button('Close', on_click=dialog.close)
+                    ui.button('Functions', on_click=dialog.open)
+                except KeyError:
+                    pass
     
-
     
     def set_speed(self):
         self.locomotive_msg.command = LocomotiveControl().__class__.SET_SPEED

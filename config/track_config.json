@@ -19,7 +19,7 @@
         {
           "number": 4,
           "title" : "Acceleration",
-          "icon" : "home"
+          "icon" : "double_arrow"
         }
       ] 
     },
@@ -58,7 +58,7 @@
         {
           "number": 4,
           "title" : "Acceleration",
-          "icon" : "fast forward"
+          "icon" : "double_arrow"
         }
       ] 
     },
@@ -70,14 +70,7 @@
       "address": 78,
       "max_speed" : 1000,
       "decrement_speed_step" : 100,
-      "increment_speed_step" : 100,
-      "functions":[
-        {
-          "number": 0,
-          "title" : "shunting light",
-          "icon" : "lightbulb"
-        }
-      ] 
+      "increment_speed_step" : 100
 
     }
   ],
