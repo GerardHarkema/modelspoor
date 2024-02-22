@@ -71,8 +71,14 @@ class RailTrackNode(Node):
         self.turnouts = []
         with Client.auto_index_client:
             with ui.tabs().classes('w-full') as tabs:
-                self.locomotives_tab = ui.tab('Locomotives')
+                try:
+                    tmp = self.track_config["Locomotives"]
+                    self.locomotives_tab = ui.tab('Locomotives')
+                except KeyError:
+                    pass
+
                 self.turnouts_tab = ui.tab('Turnouts')
+
                 try:
                     tmp = self.track_config["railtrack_layout_image"]
                     self.tracklayouts_tab = ui.tab('Track Layout')
@@ -90,11 +96,15 @@ class RailTrackNode(Node):
                         for turnout in self.turnouts:
                             tc = turnout_control(turnout, self.turnout_control_publisher)
                             self.turnoutsui.append(tc)
-                with ui.tab_panel(self.locomotives_tab):
-                    with ui.grid(columns=3):
-                        for loc in self.track_config['Locomotives']:
-                            locomotive = locomotive_control(loc, self.locomotive_control_publisher, self.locomotive_images_path)
-                            self.locomotivesui.append(locomotive)
+                try:
+                    tmp = self.track_config["Locomotives"]                
+                    with ui.tab_panel(self.locomotives_tab):
+                        with ui.grid(columns=3):
+                            for loc in self.track_config['Locomotives']:
+                                locomotive = locomotive_control(loc, self.locomotive_control_publisher, self.locomotive_images_path)
+                                self.locomotivesui.append(locomotive)
+                except KeyError:
+                    pass
                 try:
                     tmp = self.track_config["railtrack_layout_image"]
                     with ui.tab_panel(self.tracklayouts_tab):
