@@ -4,6 +4,13 @@
 	(generator_version "8.0")
 	(uuid "a90d53d7-cb42-4b2d-aaf3-eef3bb9250bb")
 	(paper "A4")
+	(title_block
+		(title "TrackController")
+		(date "2024-04-29")
+		(rev "A")
+		(comment 1 "Complete Schematics")
+		(comment 2 "Design by Gerard Harkema")
+	)
 	(lib_symbols
 		(symbol "Connector:Barrel_Jack_Switch"
 			(pin_names hide)
