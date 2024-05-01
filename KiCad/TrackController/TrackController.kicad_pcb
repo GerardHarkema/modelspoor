@@ -13204,13 +13204,79 @@
 	(dimension
 		(type aligned)
 		(layer "User.1")
+		(uuid "08c34549-77a9-4439-8c1b-a361dd973ecb")
+		(pts
+			(xy 162.2 88.2) (xy 169.94 88.2)
+		)
+		(height 46.8)
+		(gr_text "7.7 mm"
+			(at 166.07 133.85 0)
+			(layer "User.1")
+			(uuid "08c34549-77a9-4439-8c1b-a361dd973ecb")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(format
+			(prefix "")
+			(suffix "")
+			(units 3)
+			(units_format 1)
+			(precision 1)
+		)
+		(style
+			(thickness 0.15)
+			(arrow_length 1.27)
+			(text_position_mode 0)
+			(extension_height 0.58642)
+			(extension_offset 0.5) keep_text_aligned)
+	)
+	(dimension
+		(type aligned)
+		(layer "User.1")
+		(uuid "09752e0c-8820-4f33-8d20-03aaf208a0e2")
+		(pts
+			(xy 137.79 95.5733) (xy 137.79 129.9)
+		)
+		(height -47.21)
+		(gr_text "34.3 mm"
+			(at 183.85 112.73665 90)
+			(layer "User.1")
+			(uuid "09752e0c-8820-4f33-8d20-03aaf208a0e2")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(format
+			(prefix "")
+			(suffix "")
+			(units 3)
+			(units_format 1)
+			(precision 1)
+		)
+		(style
+			(thickness 0.15)
+			(arrow_length 1.27)
+			(text_position_mode 0)
+			(extension_height 0.58642)
+			(extension_offset 0.5) keep_text_aligned)
+	)
+	(dimension
+		(type aligned)
+		(layer "User.1")
 		(uuid "186e12c0-d76e-43df-a5b3-0113ac6c96a8")
 		(pts
 			(xy 40 130) (xy 170 130)
 		)
-		(height 5.499999)
-		(gr_text "130.0000 mm"
-			(at 105 134.349999 0)
+		(height 15)
+		(gr_text "130.0 mm"
+			(at 105 143.85 0)
 			(layer "User.1")
 			(uuid "186e12c0-d76e-43df-a5b3-0113ac6c96a8")
 			(effects
@@ -13225,7 +13291,73 @@
 			(suffix "")
 			(units 3)
 			(units_format 1)
-			(precision 4)
+			(precision 1)
+		)
+		(style
+			(thickness 0.15)
+			(arrow_length 1.27)
+			(text_position_mode 0)
+			(extension_height 0.58642)
+			(extension_offset 0.5) keep_text_aligned)
+	)
+	(dimension
+		(type aligned)
+		(layer "User.1")
+		(uuid "31f07b1c-dd37-478f-a41b-8c1d28b970fe")
+		(pts
+			(xy 39.36 123.24) (xy 39.36 130)
+		)
+		(height 4.36)
+		(gr_text "6.8 mm"
+			(at 33.85 125 90)
+			(layer "User.1")
+			(uuid "31f07b1c-dd37-478f-a41b-8c1d28b970fe")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(format
+			(prefix "")
+			(suffix "")
+			(units 3)
+			(units_format 1)
+			(precision 1)
+		)
+		(style
+			(thickness 0.15)
+			(arrow_length 1.27)
+			(text_position_mode 2)
+			(extension_height 0.58642)
+			(extension_offset 0.5) keep_text_aligned)
+	)
+	(dimension
+		(type aligned)
+		(layer "User.1")
+		(uuid "5ce18a0e-fadb-48e2-8952-994024b19f79")
+		(pts
+			(xy 137.715 86.665) (xy 137.715 129.9)
+		)
+		(height -52.285)
+		(gr_text "43.2 mm"
+			(at 188.85 108.2825 90)
+			(layer "User.1")
+			(uuid "5ce18a0e-fadb-48e2-8952-994024b19f79")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(format
+			(prefix "")
+			(suffix "")
+			(units 3)
+			(units_format 1)
+			(precision 1)
 		)
 		(style
 			(thickness 0.15)
@@ -13241,9 +13373,9 @@
 		(pts
 			(xy 170 70) (xy 170 130)
 		)
-		(height -19.5)
-		(gr_text "60.0000 mm"
-			(at 188.35 100 90)
+		(height -25)
+		(gr_text "60.0 mm"
+			(at 193.85 100 90)
 			(layer "User.1")
 			(uuid "685a12d8-ad54-4859-90ee-b466edc93cfd")
 			(effects
@@ -13258,7 +13390,139 @@
 			(suffix "")
 			(units 3)
 			(units_format 1)
-			(precision 4)
+			(precision 1)
+		)
+		(style
+			(thickness 0.15)
+			(arrow_length 1.27)
+			(text_position_mode 0)
+			(extension_height 0.58642)
+			(extension_offset 0.5) keep_text_aligned)
+	)
+	(dimension
+		(type aligned)
+		(layer "User.1")
+		(uuid "8f42c241-b60b-4f49-b886-05c6360631e4")
+		(pts
+			(xy 137.715 104.3907) (xy 137.715 130)
+		)
+		(height -42.285)
+		(gr_text "25.6 mm"
+			(at 178.85 117.19535 90)
+			(layer "User.1")
+			(uuid "8f42c241-b60b-4f49-b886-05c6360631e4")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(format
+			(prefix "")
+			(suffix "")
+			(units 3)
+			(units_format 1)
+			(precision 1)
+		)
+		(style
+			(thickness 0.15)
+			(arrow_length 1.27)
+			(text_position_mode 0)
+			(extension_height 0.58642)
+			(extension_offset 0.5) keep_text_aligned)
+	)
+	(dimension
+		(type aligned)
+		(layer "User.1")
+		(uuid "95d38a81-aa28-4940-a06e-5f1546955e6f")
+		(pts
+			(xy 40.56 100) (xy 40.56 130)
+		)
+		(height 10.56)
+		(gr_text "30.0 mm"
+			(at 28.85 115 90)
+			(layer "User.1")
+			(uuid "95d38a81-aa28-4940-a06e-5f1546955e6f")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(format
+			(prefix "")
+			(suffix "")
+			(units 3)
+			(units_format 1)
+			(precision 1)
+		)
+		(style
+			(thickness 0.15)
+			(arrow_length 1.27)
+			(text_position_mode 0)
+			(extension_height 0.58642)
+			(extension_offset 0.5) keep_text_aligned)
+	)
+	(dimension
+		(type aligned)
+		(layer "User.1")
+		(uuid "c86f0bd3-58dd-4cb2-b806-bbb67eee64ac")
+		(pts
+			(xy 137.715 113.208) (xy 137.715 130)
+		)
+		(height -37.285)
+		(gr_text "16.8 mm"
+			(at 173.85 121.604 90)
+			(layer "User.1")
+			(uuid "c86f0bd3-58dd-4cb2-b806-bbb67eee64ac")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(format
+			(prefix "")
+			(suffix "")
+			(units 3)
+			(units_format 1)
+			(precision 1)
+		)
+		(style
+			(thickness 0.15)
+			(arrow_length 1.27)
+			(text_position_mode 0)
+			(extension_height 0.58642)
+			(extension_offset 0.5) keep_text_aligned)
+	)
+	(dimension
+		(type aligned)
+		(layer "User.1")
+		(uuid "e2bfe943-55dc-4893-987b-031e61642c51")
+		(pts
+			(xy 137.715 113.208) (xy 169.9 113.208)
+		)
+		(height 26.792)
+		(gr_text "32.2 mm"
+			(at 153.8075 138.85 0)
+			(layer "User.1")
+			(uuid "e2bfe943-55dc-4893-987b-031e61642c51")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(format
+			(prefix "")
+			(suffix "")
+			(units 3)
+			(units_format 1)
+			(precision 1)
 		)
 		(style
 			(thickness 0.15)
