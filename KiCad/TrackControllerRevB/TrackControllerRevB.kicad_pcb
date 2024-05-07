@@ -784,8 +784,6 @@
 			)
 		)
 		(path "/191d607f-8edc-4ee2-ba03-bb1dfff2421c")
-		(sheetname "Root")
-		(sheetfile "TrackControllerRevB.kicad_sch")
 		(attr through_hole)
 		(fp_line
 			(start -2.54 3.81)
@@ -953,7 +951,7 @@
 		(pad "1" thru_hole circle
 			(at -1.27 -5.08 90)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 13 "/TRACK-PULSE-H")
@@ -964,7 +962,7 @@
 		(pad "2" thru_hole circle
 			(at 1.27 -5.08 90)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 17 "/TRACK-PULSE-L")
@@ -975,7 +973,7 @@
 		(pad "3" thru_hole circle
 			(at -1.27 -2.54 90)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 14 "/TRACK-POWER-ENABLE")
@@ -986,7 +984,7 @@
 		(pad "4" thru_hole circle
 			(at 1.27 -2.54 90)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 14 "/TRACK-POWER-ENABLE")
@@ -997,7 +995,7 @@
 		(pad "5" thru_hole circle
 			(at -1.27 0 90)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 3 "/IS")
@@ -1008,7 +1006,7 @@
 		(pad "6" thru_hole circle
 			(at 1.27 0 90)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 3 "/IS")
@@ -1019,7 +1017,7 @@
 		(pad "7" thru_hole circle
 			(at -1.27 2.54 90)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 63 "/3V3")
@@ -1030,7 +1028,7 @@
 		(pad "8" thru_hole circle
 			(at 1.27 2.54 90)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 64 "GND")
@@ -1041,7 +1039,7 @@
 		(pad "9" thru_hole circle
 			(at -1.27 5.08 90)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 65 "/18V")
@@ -1052,7 +1050,7 @@
 		(pad "10" thru_hole circle
 			(at 1.27 5.08 90)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 18 "/TEMP")
@@ -1129,8 +1127,6 @@
 			)
 		)
 		(path "/2f24fdb7-9d56-41fb-8ffe-0aac05c12764")
-		(sheetname "Root")
-		(sheetfile "TrackControllerRevB.kicad_sch")
 		(attr through_hole)
 		(fp_line
 			(start 20 -5)
@@ -1188,7 +1184,7 @@
 		(pad "1" thru_hole circle
 			(at -17.78 -7.62)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 31 "/CAN-INT-TTL*")
@@ -1199,7 +1195,7 @@
 		(pad "2" thru_hole circle
 			(at -17.78 -5.08)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 34 "/SCK-TTL")
@@ -1210,7 +1206,7 @@
 		(pad "3" thru_hole circle
 			(at -17.78 -2.54)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 30 "/SI-TTL")
@@ -1221,7 +1217,7 @@
 		(pad "4" thru_hole circle
 			(at -17.78 0)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 32 "/SO-TTL")
@@ -1232,7 +1228,7 @@
 		(pad "5" thru_hole circle
 			(at -17.78 2.54)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 28 "/CAN-CS-TTL*")
@@ -1243,7 +1239,7 @@
 		(pad "6" thru_hole circle
 			(at -17.78 5.08)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 64 "GND")
@@ -1254,7 +1250,7 @@
 		(pad "7" thru_hole circle
 			(at -17.78 7.62)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 41 "/VCC")
@@ -1265,7 +1261,7 @@
 		(pad "8" thru_hole circle
 			(at 22.86 -2.54)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 33 "/CAN-H")
@@ -1276,7 +1272,7 @@
 		(pad "9" thru_hole circle
 			(at 22.86 2.54)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 29 "/CAN-L")
@@ -9907,8 +9903,6 @@
 			)
 		)
 		(path "/be29993c-5143-4037-b344-308a68a2a82a")
-		(sheetname "Root")
-		(sheetfile "TrackControllerRevB.kicad_sch")
 		(attr through_hole)
 		(fp_rect
 			(start -11 -8.5)
@@ -9934,9 +9928,9 @@
 			)
 		)
 		(pad "1" thru_hole circle
-			(at -9.525 -6.985 270)
+			(at -9.525 -6.35 270)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 64 "GND")
@@ -9945,9 +9939,9 @@
 			(uuid "36ad7ffe-dc86-41ca-b29c-c35bb60b4951")
 		)
 		(pad "2" thru_hole circle
-			(at -9.525 -4.445 270)
+			(at -9.525 -3.81 270)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 64 "GND")
@@ -9956,9 +9950,9 @@
 			(uuid "40bcaabc-caf4-4bff-a70b-bd3a645eb327")
 		)
 		(pad "3" thru_hole circle
-			(at -9.525 4.445 270)
+			(at -9.525 3.81 270)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 65 "/18V")
@@ -9967,9 +9961,9 @@
 			(uuid "e7db4315-c83c-4196-8ed2-bae6c15312c3")
 		)
 		(pad "4" thru_hole circle
-			(at -9.525 6.985 270)
+			(at -9.525 6.35 270)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 65 "/18V")
@@ -9978,9 +9972,9 @@
 			(uuid "ecb035ff-91a5-43c0-8789-c47487821e0f")
 		)
 		(pad "5" thru_hole circle
-			(at 9.525 -6.985 270)
+			(at 9.525 -6.35 270)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 64 "GND")
@@ -9989,9 +9983,9 @@
 			(uuid "39b53467-9051-490c-a7a7-c4d5b01f690a")
 		)
 		(pad "6" thru_hole circle
-			(at 9.525 -4.445 270)
+			(at 9.525 -3.81 270)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 64 "GND")
@@ -10000,9 +9994,9 @@
 			(uuid "df148437-817a-4c3f-ad9a-c5589735f917")
 		)
 		(pad "7" thru_hole circle
-			(at 9.525 4.445 270)
+			(at 9.525 3.81 270)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 20 "/VCC-RAW")
@@ -10011,9 +10005,9 @@
 			(uuid "70a1a54b-5e2e-4c64-8242-a734302bf3f0")
 		)
 		(pad "8" thru_hole circle
-			(at 9.525 6.985 270)
+			(at 9.525 6.35 270)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 20 "/VCC-RAW")
@@ -11725,7 +11719,7 @@
 		(uuid "174099e8-0858-494b-9009-9fe1ae3ca2b6")
 		(at 105.024 100)
 		(property "Reference" "LCD1"
-			(at 0 0 0)
+			(at -1 0 0)
 			(unlocked yes)
 			(layer "B.SilkS")
 			(uuid "f4a766f1-6798-4d85-9536-c36ab4f2ccd5")
@@ -11738,7 +11732,7 @@
 			)
 		)
 		(property "Value" "~"
-			(at -6 0 180)
+			(at -7 0 180)
 			(unlocked yes)
 			(layer "B.Fab")
 			(uuid "ef7fd16f-9fa3-4a9b-b465-1c583fc481ac")
@@ -11751,7 +11745,7 @@
 			)
 		)
 		(property "Footprint" "railtrack:1.77 LCD Display 128x160"
-			(at 0 0 180)
+			(at -1 0 180)
 			(unlocked yes)
 			(layer "B.Fab")
 			(hide yes)
@@ -11765,7 +11759,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at -6 1 180)
+			(at -7 1 180)
 			(unlocked yes)
 			(layer "B.Fab")
 			(hide yes)
@@ -11779,7 +11773,7 @@
 			)
 		)
 		(property "Description" ""
-			(at -6 1 180)
+			(at -7 1 180)
 			(unlocked yes)
 			(layer "B.Fab")
 			(hide yes)
@@ -11793,22 +11787,20 @@
 			)
 		)
 		(path "/5a4553e9-fefb-4f2f-ba1e-35e262953f77")
-		(sheetname "Root")
-		(sheetfile "TrackControllerRevB.kicad_sch")
 		(attr through_hole)
 		(fp_rect
-			(start 27 -17)
-			(end -27 17)
+			(start 28 -17)
+			(end -28 17)
 			(stroke
 				(width 0.1)
 				(type default)
 			)
 			(fill none)
 			(layer "B.SilkS")
-			(uuid "a737f293-7f04-4e70-9442-c6df0c80ed1a")
+			(uuid "b9e98848-06b8-4c4a-96c2-fb84cc9fcef0")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 -2 180)
+			(at -1 -2 180)
 			(unlocked yes)
 			(layer "B.Fab")
 			(uuid "81dcd3a1-6584-4abf-9359-ba0843a63640")
@@ -11821,9 +11813,9 @@
 			)
 		)
 		(pad "1" thru_hole circle
-			(at -25.146 -8.89 180)
+			(at -26.146 -8.89 180)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 64 "GND")
@@ -11832,9 +11824,9 @@
 			(uuid "1edbd223-2d21-4c1a-9491-a1b6430d4b5c")
 		)
 		(pad "2" thru_hole circle
-			(at -25.146 -6.35 180)
+			(at -26.146 -6.35 180)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 41 "/VCC")
@@ -11843,9 +11835,9 @@
 			(uuid "0187d530-4367-4ba3-97d6-a279e3f4256a")
 		)
 		(pad "3" thru_hole circle
-			(at -25.146 -3.81 180)
+			(at -26.146 -3.81 180)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 2 "/SCK")
@@ -11854,9 +11846,9 @@
 			(uuid "1f96242b-3627-4745-8541-023428bd8770")
 		)
 		(pad "4" thru_hole circle
-			(at -25.146 -1.27 180)
+			(at -26.146 -1.27 180)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 1 "/MOSI")
@@ -11865,9 +11857,9 @@
 			(uuid "e47d4dd3-a105-4c2a-b1cb-c5aba02a591d")
 		)
 		(pad "5" thru_hole circle
-			(at -25.146 1.27 180)
+			(at -26.146 1.27 180)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 27 "/LCD-RES")
@@ -11876,9 +11868,9 @@
 			(uuid "abb0b113-ef0b-47ed-a72b-2782d08078f2")
 		)
 		(pad "6" thru_hole circle
-			(at -25.146 3.81 180)
+			(at -26.146 3.81 180)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 25 "/LCD-RS")
@@ -11887,9 +11879,9 @@
 			(uuid "be8a859a-bc93-47cf-8044-ac082837d5d8")
 		)
 		(pad "7" thru_hole circle
-			(at -25.146 6.35 180)
+			(at -26.146 6.35 180)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 26 "/LCD-CS*")
@@ -11898,9 +11890,9 @@
 			(uuid "71cd14c8-e351-4e60-9981-24f6f8c2522e")
 		)
 		(pad "8" thru_hole circle
-			(at -25.146 8.89 180)
+			(at -26.146 8.89 180)
 			(size 1.524 1.524)
-			(drill 0.762)
+			(drill 0.8)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 63 "/3V3")
@@ -11910,7 +11902,7 @@
 		)
 		(model "${KIPRJMOD}/3d-models/1e77-TFT-160x128.stp"
 			(offset
-				(xyz 1.5 0 2)
+				(xyz 0.5 0 2)
 			)
 			(scale
 				(xyz 1 1 1)
