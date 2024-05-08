@@ -11818,40 +11818,6 @@
 				(justify mirror)
 			)
 		)
-		(dimension
-			(type aligned)
-			(layer "B.SilkS")
-			(uuid "db82e871-a7d0-4ed1-bcde-7c3cd7bbb951")
-			(pts
-				(xy 77 83) (xy 133 83)
-			)
-			(height -7.13)
-			(gr_text "56.0000 mm"
-				(at 105 74.77 0)
-				(layer "B.SilkS")
-				(uuid "db82e871-a7d0-4ed1-bcde-7c3cd7bbb951")
-				(effects
-					(font
-						(size 1 1)
-						(thickness 0.1)
-					)
-					(justify mirror)
-				)
-			)
-			(format
-				(prefix "")
-				(suffix "")
-				(units 3)
-				(units_format 1)
-				(precision 4)
-			)
-			(style
-				(thickness 0.1)
-				(arrow_length 1.27)
-				(text_position_mode 0)
-				(extension_height 0.58642)
-				(extension_offset 0.5) keep_text_aligned)
-		)
 		(pad "1" thru_hole circle
 			(at -26.9 -8.89 180)
 			(size 1.524 1.524)
@@ -11942,7 +11908,7 @@
 		)
 		(model "${KIPRJMOD}/3d-models/1e77-TFT-160x128.stp"
 			(offset
-				(xyz 0.5 0 2)
+				(xyz -0.5 0 2)
 			)
 			(scale
 				(xyz 1 1 1)
