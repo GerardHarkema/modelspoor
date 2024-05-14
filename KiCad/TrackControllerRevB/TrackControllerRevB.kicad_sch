@@ -4734,7 +4734,7 @@
 		)
 		(uuid "165858aa-5229-4172-a710-1e1e91b0b66d")
 	)
-	(label "TRACK-PULSE-L"
+	(label "CAN-CS*{slash}TRACK-PULSE-L-TTL"
 		(at 210.82 77.47 0)
 		(fields_autoplaced yes)
 		(effects
@@ -4811,7 +4811,7 @@
 		)
 		(uuid "25565f60-24ca-4486-bfe8-2ff98784cabf")
 	)
-	(label "TRACK-POWER-ENABLE"
+	(label "TRACK-ENABLE-TTL"
 		(at 210.82 80.01 0)
 		(fields_autoplaced yes)
 		(effects
@@ -4833,7 +4833,7 @@
 		)
 		(uuid "298fb221-cf08-4d6f-9362-8d5309d43490")
 	)
-	(label "3V3"
+	(label "VCC"
 		(at 187.96 85.09 180)
 		(fields_autoplaced yes)
 		(effects
@@ -4920,7 +4920,7 @@
 		)
 		(uuid "3cf8076e-93ba-4fd4-acae-eda021998496")
 	)
-	(label "CAN-CS-TTL*"
+	(label "CAN-CS*{slash}TRACK-PULSE-L-TTL"
 		(at 224.79 41.91 0)
 		(fields_autoplaced yes)
 		(effects
@@ -4963,7 +4963,7 @@
 		)
 		(uuid "48de1157-36f7-4609-82b5-924c7f836796")
 	)
-	(label "TRACK-POWER-ENABLE"
+	(label "TRACK-ENABLE-TTL"
 		(at 187.96 80.01 180)
 		(fields_autoplaced yes)
 		(effects
@@ -5094,7 +5094,7 @@
 		)
 		(uuid "69e37967-6f1c-4516-aebf-03e4b90c1b7c")
 	)
-	(label "CAN-CS*"
+	(label "CAN-CS*{slash}TRACK-PULSE-L"
 		(at 204.47 41.91 180)
 		(fields_autoplaced yes)
 		(effects
@@ -5347,7 +5347,7 @@
 		)
 		(uuid "9ffcc5e2-b948-43fe-9a1c-5ee3fbafc550")
 	)
-	(label "CAN-CS*"
+	(label "CAN-CS*{slash}TRACK-PULSE-L"
 		(at 115.57 34.29 180)
 		(fields_autoplaced yes)
 		(effects
@@ -5556,7 +5556,7 @@
 		)
 		(uuid "c348f90c-10af-4097-8191-961303332826")
 	)
-	(label "CAN-CS-TTL*"
+	(label "CAN-CS*{slash}TRACK-PULSE-L-TTL"
 		(at 119.38 128.27 180)
 		(fields_autoplaced yes)
 		(effects
